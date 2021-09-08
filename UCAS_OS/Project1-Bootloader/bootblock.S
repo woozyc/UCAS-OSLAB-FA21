@@ -5,20 +5,37 @@
 // #define OS_SIZE_LOC (BOOT_LOADER_SIG_OFFSET - 2)
 // #define OS_SIZE_LOC 0x1fc
 
-.equ os_size_loc, 0x502001fc
+.equ os_size_loc, 0x510001fc
 
 // 1. kernel address (move kernel to here ~)
-.equ kernel, 0x50201000
+.equ kernel, 0x50200000
 
 // 2. kernel main address (jmp here to start kernel main!)
-.equ kernel_main, 0x50201000
+.equ kernel_main, 0x50200000
+
+// 3. bootloader copy address (spare place for kernel)
+.equ copied_bootloader, 0x51000000
 
 .text
 .global main
 
 main:
+	
 	// fence on all memory and I/O
 	fence
+	
+	//copy bootloader to 0x51000000
+	lui a5, %hi(copied_bootloader)
+	addi a0, a5, %lo(copied_bootloader)
+	li a1, 1
+	li a2, 0
+	SBI_CALL SBI_SD_READ
+	//jump to copied_bootloader to continue
+	lui s1, %hi(copied_bootloader)
+	addi s0, s1, %lo(copied_bootloader)
+	addi s0, s0, 38
+	jr s0
+	fence.i
 
 	// print a \n to avoid system output error...
 	li a0, 10
@@ -39,7 +56,12 @@ main:
 	li a2, 1
 	SBI_CALL SBI_SD_READ
 	
-	j kernel_main
+	/*jump to kernel start, use jr instead of j, 
+	  since code is running in another place in 
+	  memory, PC should change directly*/
+	lui s1, %hi(kernel_main)
+	addi s0, s1, %lo(kernel_main)
+	jr s0
 	
 	
 	
