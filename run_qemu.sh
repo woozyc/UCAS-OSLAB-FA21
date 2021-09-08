@@ -1,4 +1,4 @@
-IMAGE_PATH=image
+IMAGE_PATH=/home/stu/OSLab-RISC-V/oslab/UCAS_OS/Project1-Bootloader/image
 
 if [ "$1" == "ci" ];
 then
