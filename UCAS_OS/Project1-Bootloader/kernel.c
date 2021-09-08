@@ -36,8 +36,9 @@ int main(void)
     }
 
 	//print "Hello OS!"
-    
+	sbi_console_putstr("Hello OS!\n\r");
 	//print array buf which is expected to be "Version: 1"
+	sbi_console_putstr(buf);
 
     //fill function getch, and call getch here to receive keyboard input.
 	//print it out at the same time 

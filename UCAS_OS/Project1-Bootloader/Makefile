@@ -10,13 +10,13 @@ KERNEL_ENTRYPOINT = 0x50201000
 all: image
 
 bootblock: bootblock.S riscv.lds
-	${CC} ${CFLAGS} -o bootblock bootblock.S -e main -Ttext=${BOOTLOADER_ENTRYPOINT}
+	${CC} ${CFLAGS} -o bootblock bootblock.S -ggdb -e main -Ttext=${BOOTLOADER_ENTRYPOINT}
 
 kernel: kernel.c head.S riscv.lds
-	${CC} ${CFLAGS} -o kernel kernel.c head.S -Ttext=${KERNEL_ENTRYPOINT}
+	${CC} ${CFLAGS} -o kernel kernel.c head.S -ggdb -Ttext=${KERNEL_ENTRYPOINT}
 
 createimage: createimage.c
-	${HOST_CC} createimage.c -o createimage -ggdb -Wall
+	${HOST_CC} createimage.c -o createimage -Wall
 
 image: bootblock kernel createimage
 	./createimage --extended bootblock kernel

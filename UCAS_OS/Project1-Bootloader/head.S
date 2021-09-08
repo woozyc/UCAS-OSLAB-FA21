@@ -21,12 +21,24 @@ _start:
   .option pop
   
   /* Clear BSS for flat non-ELF images */
-
-  /* setup C environment (set sp register)*/
-
-  /* Jump to the code in kernel.c*/
-
+  la s0, __bss_start
+  la s1, __BSS_END__
+  mv s2, s0
+  bge s2, s1, end
+  
 loop:
-  wfi
+  //wfi
+  sw zero, 0(s2)
+  addi s2, s2, 4
+  bge s2, s1, end
   j loop
+  
+  /* setup C environment (set sp register)*/
+end:
+  li sp, KERNEL_STACK
+  
+  /* Jump to the code in kernel.c*/
+  j main
+  
+
 

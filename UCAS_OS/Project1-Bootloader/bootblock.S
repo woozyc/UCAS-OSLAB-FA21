@@ -31,6 +31,16 @@ main:
 	SBI_CALL SBI_CONSOLE_PUTSTR
 
 	// 2) task2 call BIOS read kernel in SD card and jump to kernel start
+	lui a5, %hi(kernel)
+	addi a0, a5, %lo(kernel)
+	lui a5, %hi(os_size_loc)
+	addi a4, a5, %lo(os_size_loc)
+	lh a1, 0(a4)
+	li a2, 0
+	SBI_CALL SBI_SD_READ
+	
+	j kernel_main
+	
 	
 	
 
