@@ -36,7 +36,7 @@ main:
 	lui a5, %hi(os_size_loc)
 	addi a4, a5, %lo(os_size_loc)
 	lh a1, 0(a4)
-	li a2, 0
+	li a2, 1
 	SBI_CALL SBI_SD_READ
 	
 	j kernel_main
