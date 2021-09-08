@@ -5,7 +5,7 @@
 // #define OS_SIZE_LOC (BOOT_LOADER_SIG_OFFSET - 2)
 // #define OS_SIZE_LOC 0x1fc
 
-.equ os_size_loc, 0x510001fc
+.equ os_size_loc, 0x5e0001fc
 
 // 1. kernel address (move kernel to here ~)
 .equ kernel, 0x50200000
@@ -14,7 +14,7 @@
 .equ kernel_main, 0x50200000
 
 // 3. bootloader copy address (spare place for kernel)
-.equ copied_bootloader, 0x51000000
+.equ copied_bootloader, 0x5e000000
 
 .text
 .global main
