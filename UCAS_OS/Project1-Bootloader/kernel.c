@@ -16,7 +16,10 @@ int bss_check()
 int getch()
 {
 	//Waits for a keyboard input and then returns.
-    ;
+	int c = sbi_console_getchar();
+	while(c == -1)
+		c = sbi_console_getchar();
+    return c;
 }
 
 int main(void)
@@ -41,7 +44,12 @@ int main(void)
 	sbi_console_putstr(buf);
 
     //fill function getch, and call getch here to receive keyboard input.
-	//print it out at the same time 
+    int input;
+    while(1){
+    	input = getch();
+		//print it out at the same time 
+		sbi_console_putchar(input);
+    }
 
     return 0;
 }
