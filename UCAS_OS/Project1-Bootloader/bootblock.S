@@ -46,20 +46,46 @@ main:
 	lui a5, %hi(msg)
 	addi a0, a5, %lo(msg)
 	SBI_CALL SBI_CONSOLE_PUTSTR
-
+	
+	
+	lui a5, %hi(os_num_loc)
+	addi a4, a5, %lo(os_num_loc)//a4: num_loc
+	lh a0, 0(a4)
+	mv a3, a0//a3: os_num
+	addi a0, a0, 48
+	SBI_CALL SBI_CONSOLE_PUTCHAR
+	li a0, 10
+	SBI_CALL SBI_CONSOLE_PUTCHAR
+	
 	//wait for kernel choice
+	li a0, -1
+waitinput:
+	SBI_CALL SBI_CONSOLE_GETCHAR
+	addi a0, a0, -48
+	ble a0, zero, waitinput
+	blt a3, a0, waitinput
+	mv s1, a0
 	
-	
+	//print input
+	addi a0, a0, 48
+	SBI_CALL SBI_CONSOLE_PUTCHAR
+	li a0, 10
+	SBI_CALL SBI_CONSOLE_PUTCHAR
+	mv a0, s1
 	//decide which kernel to copy
-	
-	
-	// 2) task2 call BIOS read kernel in SD card and jump to kernel start
+	li a2, 1
+addsize://get ready for sd_read
+	addi a4, a4, -4
+	lh a1, 0(a4)
+	addi a0, a0, -1
+	beqz a0, runkernel
+	add a2, a2, a1
+	j addsize
+
+runkernel:	
+	// 2) task2 call BIOS read kernel in SD card and jump to kernel startx
 	lui a5, %hi(kernel)
 	addi a0, a5, %lo(kernel)
-	lui a5, %hi(os_size_loc)
-	addi a4, a5, %lo(os_size_loc)
-	lh a1, 0(a4)
-	li a2, 1
 	SBI_CALL SBI_SD_READ
 	
 	
@@ -80,5 +106,5 @@ stop:
 
 .data
 
-msg: .string "It's a bootloader...\n\r"
+msg: .string "It's a bootloader...\n\rPlease input the id of kernel you want to boot, total kernel number: "
 
