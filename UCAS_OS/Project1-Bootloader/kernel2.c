@@ -40,6 +40,7 @@ int main(void)
 
 	//print "Hello OS!"
 	sbi_console_putstr("Hello OS!\n\r");
+	sbi_console_putstr("Kernel No.2 is running well!\n\r");
 	//print array buf which is expected to be "Version: 1"
 	sbi_console_putstr(buf);
 
