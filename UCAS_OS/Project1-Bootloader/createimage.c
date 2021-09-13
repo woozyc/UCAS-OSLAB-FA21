@@ -9,6 +9,8 @@
 #define IMAGE_FILE "./image"
 #define ARGS "[--extended] [--vm] <bootblock> <executable-file> ..."
 
+#define OSSIZE_LOC_BASE 0x502001fc
+
 
 /* structure to store command line options */
 static struct {
@@ -23,8 +25,10 @@ static void read_ehdr(Elf64_Ehdr * ehdr, FILE * fp);
 static void read_phdr(Elf64_Phdr * phdr, FILE * fp, int ph,
                       Elf64_Ehdr ehdr);
 static void write_segment(Elf64_Ehdr ehdr, Elf64_Phdr phdr, FILE * fp,
-                          FILE * img, int *nbytes, int *first);
-static void write_os_size(int nbytes, FILE * img);
+                          FILE * img, int *nbytes, int *count);
+static void pad_section(int *nbytes, FILE * img);
+static void write_os_size(int nbytes, FILE * img, int count);
+static void write_os_num(FILE * img, int count);
 
 int main(int argc, char **argv)
 {
@@ -60,17 +64,29 @@ int main(int argc, char **argv)
 
 static void create_image(int nfiles, char *files[])
 {
-    int ph, nbytes = 0, first = 1;
+    int ph, nbytes, count = 0;
+    //nbytes: only kernel bytes, count: kernel number
     FILE *fp, *img;
     Elf64_Ehdr ehdr;
     Elf64_Phdr phdr;
 
     /* open the image file */
+    img = fopen(IMAGE_FILE, "wb+");
+    if(!img){
+    	printf("Error! Cannot open file %s\n", IMAGE_FILE);
+    	return ;
+    }
 
     /* for each input file */
     while (nfiles-- > 0) {
+    	nbytes = 0;
 
         /* open input file */
+        fp = fopen(*files, "rb");
+        if(!fp){
+        	printf("Error! Connot open file %s\n", *files);
+        	return ;
+        }
 
         /* read ELF header */
         read_ehdr(&ehdr, fp);
@@ -83,36 +99,101 @@ static void create_image(int nfiles, char *files[])
             read_phdr(&phdr, fp, ph, ehdr);
 
             /* write segment to the image */
-            write_segment(ehdr, phdr, fp, img, &nbytes, &first);
+            write_segment(ehdr, phdr, fp, img, &nbytes, &count;
         }
+        
+        pad_section(nbytes, img);
+    	write_os_size(nbytes, img, count);
+    	
         fclose(fp);
         files++;
     }
-    write_os_size(nbytes, img);
+    write_os_num(img, count);
     fclose(img);
 }
 
 static void read_ehdr(Elf64_Ehdr * ehdr, FILE * fp)
 {
-    ;
+    if(!fp)
+    	return ;
+    fread(ehdr, sizeof(Elf64_Ehdr), 1, fp);
 }
 
 static void read_phdr(Elf64_Phdr * phdr, FILE * fp, int ph,
                       Elf64_Ehdr ehdr)
 {
-    ;
+    if(!fp)
+    	return ;
+    fseek(fp, ph * sizeof(Elf64_Phdr) + phdr.e_phoff, SEEK_SET);
+    fread(phdr, sizeof(Elf64_Phdr), 1, fp);
 }
 
 static void write_segment(Elf64_Ehdr ehdr, Elf64_Phdr phdr, FILE * fp,
-                          FILE * img, int *nbytes, int *first)
+                          FILE * img, int *nbytes, int *count)
 {
-    ;
+	char pad[512] = "";	
+	
+	if(!img || !fp)
+		return ;
+	
+	//read segment into *segment
+    char *segment;
+    segment = malloc(phdr.p_filesz);
+    if(!segment){
+    	printf("Error! Malloc failed\n");
+    	return ;
+    }
+    fseek(fp, phdr.p_offset, SEEK_SET);
+    fread(segment, phdr.p_filesz, 1, fp);
+    
+    //write segment into img
+    fwrite(segment, phdr.p_filesz, 1, img);
+    
+    //pad to p_memsz
+    if((*count)++){//not bootloader
+    	fwrite(pad, phdr.p_memsz - phdr.p_filesz, 1, img);
+    	*nbytes += phdr.p_memsz;
+    }
 }
 
-static void write_os_size(int nbytes, FILE * img)
-{
-    ;
+static void pad_section(int *nbytes, FILE * img){//pad the rest of section
+	char pad[512] = "";
+	int diff = nbytes % 512;
+	//save pointer
+	long pointer = ftell(img);
+	
+	if(!img)
+		return ;
+	if(diff){
+		diff = 512 - diff;
+		fwrite(pad, diff, 1, img);
+		*nbytes += diff;
+	}
+	
+	//restore pointer
+	fseek(img, pointer, 1, SEEK_SET);
 }
+
+static void write_os_size(int nbytes, FILE * img, int count)
+{
+	if(!img)
+		return ;
+	char sections[2] = {nbytes / 256 , nbytes % 256};//half word
+    if(--count){//not bootloader
+    	fseek(img, OSSIZE_LOC_BASE - 4 * count, SEEK_SET);//0x502001fc - 4, - 8...
+    	fwrite(sections, 2L, 1, img);
+    }
+}
+
+static void write_os_num(FILE * img, int count){
+	if(!img)
+		return ;
+	
+	char num[2] = {count / 256 , count % 256};//half word
+    fseek(img, OSSIZE_LOC_BASE, SEEK_SET);//0x502001fc
+   	fwrite(num, 2L, 1, img);
+}
+
 
 /* print an error message and exit */
 static void error(char *fmt, ...)

@@ -24,7 +24,7 @@ main:
 	// fence on all memory and I/O
 	fence
 	
-	//copy bootloader to 0x51000000
+	//copy bootloader to 0x5e000000
 	lui a5, %hi(copied_bootloader)
 	addi a0, a5, %lo(copied_bootloader)
 	li a1, 1
@@ -47,6 +47,11 @@ main:
 	addi a0, a5, %lo(msg)
 	SBI_CALL SBI_CONSOLE_PUTSTR
 
+	//wait for kernel choice
+	
+	
+	//decide which kernel to copy
+	
 	// 2) task2 call BIOS read kernel in SD card and jump to kernel start
 	lui a5, %hi(kernel)
 	addi a0, a5, %lo(kernel)
@@ -55,6 +60,7 @@ main:
 	lh a1, 0(a4)
 	li a2, 1
 	SBI_CALL SBI_SD_READ
+	
 	
 	/*jump to kernel start, use jr instead of j, 
 	  since code is running in another place in 
