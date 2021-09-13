@@ -5,7 +5,7 @@
 // #define OS_SIZE_LOC (BOOT_LOADER_SIG_OFFSET - 2)
 // #define OS_SIZE_LOC 0x1fc
 
-.equ os_size_loc, 0x5e0001fc
+.equ os_num_loc, 0x5e0001fc
 
 // 1. kernel address (move kernel to here ~)
 .equ kernel, 0x50200000
@@ -51,6 +51,7 @@ main:
 	
 	
 	//decide which kernel to copy
+	
 	
 	// 2) task2 call BIOS read kernel in SD card and jump to kernel start
 	lui a5, %hi(kernel)

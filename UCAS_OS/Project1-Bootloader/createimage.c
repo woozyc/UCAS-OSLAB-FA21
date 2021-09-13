@@ -97,16 +97,22 @@ static void create_image(int nfiles, char *files[])
 
             /* read program header */
             read_phdr(&phdr, fp, ph, ehdr);
+            printf("\tsegment %d\n", ph);
+            printf("\t\toffset 0x%04lx\t\tvaddr 0x%04lx\n", phdr.p_offset, phdr.p_vaddr);
+            printf("\t\tfilesz 0x%04lx\t\tmemsz 0x%04lx\n", phdr.p_filesz, phdr.p_memsz);
 
             /* write segment to the image */
-            write_segment(ehdr, phdr, fp, img, &nbytes, &count;
+            write_segment(ehdr, phdr, fp, img, &nbytes, &count);
+            if(!ph)
+	            printf("\t\twriting 0x%04x bytes\n", nbytes);
         }
         
-        pad_section(nbytes, img);
+        pad_section(&nbytes, img);
+    	printf("\tpadding up to 0x%04lx\n", ftell(img));
     	write_os_size(nbytes, img, count);
     	
         fclose(fp);
-        files++;
+        files++, count++;
     }
     write_os_num(img, count);
     fclose(img);
@@ -124,7 +130,7 @@ static void read_phdr(Elf64_Phdr * phdr, FILE * fp, int ph,
 {
     if(!fp)
     	return ;
-    fseek(fp, ph * sizeof(Elf64_Phdr) + phdr.e_phoff, SEEK_SET);
+    fseek(fp, ph * sizeof(Elf64_Phdr) + ehdr.e_phoff, SEEK_SET);
     fread(phdr, sizeof(Elf64_Phdr), 1, fp);
 }
 
@@ -150,17 +156,13 @@ static void write_segment(Elf64_Ehdr ehdr, Elf64_Phdr phdr, FILE * fp,
     fwrite(segment, phdr.p_filesz, 1, img);
     
     //pad to p_memsz
-    if((*count)++){//not bootloader
-    	fwrite(pad, phdr.p_memsz - phdr.p_filesz, 1, img);
-    	*nbytes += phdr.p_memsz;
-    }
+    fwrite(pad, phdr.p_memsz - phdr.p_filesz, 1, img);
+    *nbytes += phdr.p_memsz;
 }
 
 static void pad_section(int *nbytes, FILE * img){//pad the rest of section
 	char pad[512] = "";
-	int diff = nbytes % 512;
-	//save pointer
-	long pointer = ftell(img);
+	int diff = (*nbytes) % 512;
 	
 	if(!img)
 		return ;
@@ -170,19 +172,27 @@ static void pad_section(int *nbytes, FILE * img){//pad the rest of section
 		*nbytes += diff;
 	}
 	
-	//restore pointer
-	fseek(img, pointer, 1, SEEK_SET);
 }
 
 static void write_os_size(int nbytes, FILE * img, int count)
 {
+	//save pointer
+	long pointer = ftell(img);
 	if(!img)
 		return ;
-	char sections[2] = {nbytes / 256 , nbytes % 256};//half word
-    if(--count){//not bootloader
+	int sec = nbytes / 512;
+	char sections[2] = {sec / 256 , sec % 256};//half word
+    if(count){//not bootloader
     	fseek(img, OSSIZE_LOC_BASE - 4 * count, SEEK_SET);//0x502001fc - 4, - 8...
     	fwrite(sections, 2L, 1, img);
     }
+    if(count)
+	    printf("\tkernel %2d size: %d\n", count, sec);
+	else
+		printf("\tbootblock size: %d\n", sec);
+    
+	//restore pointer
+	fseek(img, pointer, SEEK_SET);
 }
 
 static void write_os_num(FILE * img, int count){
@@ -192,6 +202,7 @@ static void write_os_num(FILE * img, int count){
 	char num[2] = {count / 256 , count % 256};//half word
     fseek(img, OSSIZE_LOC_BASE, SEEK_SET);//0x502001fc
    	fwrite(num, 2L, 1, img);
+   	printf("total kernel number: %d\n", count);
 }
 
 
