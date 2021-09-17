@@ -22,6 +22,8 @@ int getch()
     return c;
 }
 
+char bigdata[512] = {'1'};
+
 int main(void)
 {
     int check = bss_check();
@@ -41,6 +43,7 @@ int main(void)
 	//print "Hello OS!"
 	sbi_console_putstr("Hello OS!\n\r");
 	sbi_console_putstr("Kernel No.2 is running well!\n\r");
+	sbi_console_putstr("Size: 2 sections\n\r");
 	//print array buf which is expected to be "Version: 1"
 	sbi_console_putstr(buf);
 

@@ -108,7 +108,7 @@ static void create_image(int nfiles, char *files[])
         }
         
         pad_section(&nbytes, img);
-    	printf("\tpadding up to 0x%04lx\n", ftell(img));
+    	printf("\tpadding up to 0x%04lx, nbytes:%x\n", ftell(img), nbytes);
     	write_os_size(nbytes, img, count);
     	
         fclose(fp);
@@ -137,7 +137,7 @@ static void read_phdr(Elf64_Phdr * phdr, FILE * fp, int ph,
 static void write_segment(Elf64_Ehdr ehdr, Elf64_Phdr phdr, FILE * fp,
                           FILE * img, int *nbytes, int *count)
 {
-	char pad[512] = "";	
+	//char pad[512] = "";	
 	
 	if(!img || !fp)
 		return ;
@@ -156,8 +156,8 @@ static void write_segment(Elf64_Ehdr ehdr, Elf64_Phdr phdr, FILE * fp,
     fwrite(segment, phdr.p_filesz, 1, img);
     
     //pad to p_memsz
-    fwrite(pad, phdr.p_memsz - phdr.p_filesz, 1, img);
-    *nbytes += phdr.p_memsz;
+    //fwrite(pad, phdr.p_memsz - phdr.p_filesz, 1, img);
+    *nbytes += phdr.p_filesz;
 }
 
 static void pad_section(int *nbytes, FILE * img){//pad the rest of section
@@ -176,10 +176,10 @@ static void pad_section(int *nbytes, FILE * img){//pad the rest of section
 
 static void write_os_size(int nbytes, FILE * img, int count)
 {
-	//save pointer
-	long pointer = ftell(img);
 	if(!img)
 		return ;
+	//save pointer
+	long pointer = ftell(img);
 	int sec = nbytes / 512;
 	char sections[2] = {sec / 256 , sec % 256};//half word
     if(count){//not bootloader
