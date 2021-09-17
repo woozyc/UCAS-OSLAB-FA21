@@ -36,6 +36,11 @@ main:
 	addi s0, s0, 38
 	jr s0
 	fence.i
+	.option push
+	.option norelax
+	la gp, __global_pointer$
+	.option pop
+
 
 	// print a \n to avoid system output error...
 	li a0, 10
@@ -45,6 +50,9 @@ main:
 	//la a0, msg
 	lui a5, %hi(msg)
 	addi a0, a5, %lo(msg)
+	SBI_CALL SBI_CONSOLE_PUTSTR
+	lui a5, %hi(msg2)
+	addi a0, a5, %lo(msg2)
 	SBI_CALL SBI_CONSOLE_PUTSTR
 	
 	
@@ -106,5 +114,6 @@ stop:
 
 .data
 
-msg: .string "It's a bootloader...\n\rPlease input the id of kernel you want to boot, total kernel number: "
+msg: .string "It's a bootloader...\n\r"
+msg2: .string "Please input the id of kernel you want to boot, total kernel number: "
 
