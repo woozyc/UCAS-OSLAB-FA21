@@ -24,8 +24,8 @@ kernel3: kernel1.c head.S riscv.lds
 createimage: createimage.c
 	${HOST_CC} createimage.c -o createimage -Wall
 
-image: bootblock kernel1 kernel2 kernel3 createimage
-	./createimage --extended bootblock kernel1 kernel2 kernel3
+image: bootblock kernel1 kernel2 kernel3 kernella createimage
+	./createimage --extended bootblock kernel1 kernel2 kernel3 kernella
 
 clean:
 	rm -rf bootblock image createimage kernel1 kernel2 kernel3 *.o
