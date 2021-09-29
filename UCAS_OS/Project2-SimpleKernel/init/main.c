@@ -57,7 +57,7 @@ static void init_pcb_stack(
     for(int i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
-    pt_regs->regs[OFFSET_REG_GP / 8] = __global_pointer;
+    pt_regs->regs[3] = __global_pointer$;
     //TODO: some special regs in above regs:
      //csw registers
      //TODO
@@ -68,7 +68,7 @@ static void init_pcb_stack(
      */
     switchto_context_t *switchto_regs =
     	(switchto_context_t *)(kernel_stack - sizeof(regs_context_t) - sizeof(switchto_context_t));
-    for(i = 0; i < 14; i++){
+    for(int i = 0; i < 14; i++){
     	switchto_regs->regs[i] = 0;
     }
     //init ra and sp, while other general purpose regs stay zero
@@ -83,7 +83,7 @@ static void init_pcb()
      init_list_head(&ready_queue);
      for(int i = 0; i < num_sched1_tasks; i++){
      	//init a pcb of a task
-     	task_info * task = sched1_tasks[i];
+     	struct task_info * task = sched1_tasks[i];
      	pcb[i].pid = i+1;
      	pcb[i].kernel_sp = allocPage(1);
      	pcb[i].user_sp = allocPage(1);
