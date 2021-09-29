@@ -7,7 +7,7 @@ ptr_t allocPage(int numPage)
     // align PAGE_SIZE
     ptr_t ret = ROUND(memCurr, PAGE_SIZE);
     memCurr = ret + numPage * PAGE_SIZE;
-    return ret;
+    return memCurr;
 }
 
 void* kmalloc(size_t size)

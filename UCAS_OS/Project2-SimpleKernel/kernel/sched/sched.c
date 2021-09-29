@@ -29,6 +29,22 @@ void do_scheduler(void)
 {
     // TODO schedule
     // Modify the current_running pointer.
+    pcb *last_run = current_running;
+    if(ready_queue.prev == ready_queue){
+    	return ;
+    }
+    //enqueue to head.next, dequeue from head.prev
+    list_node_t *last_list = ready_queue.prev;
+    list_del(last_list);
+    current_running = LIST_TO_PCB(last_list);
+    current_running->status = TASK_RUNNING;
+    if(*last_run != pid0_pcb){//do not enqueue pid 0
+    	last_run->status = TASK_READY;
+    	list_add(last_run, &ready_queue);
+    }
+    //save screen cursor
+    last_run->cursor_x = screen_cursor_x;
+    last_run->cursor_y = screen_cursor_y;
 
     // restore the current_runnint's cursor_x and cursor_y
     vt100_move_cursor(current_running->cursor_x,
@@ -36,6 +52,7 @@ void do_scheduler(void)
     screen_cursor_x = current_running->cursor_x;
     screen_cursor_y = current_running->cursor_y;
     // TODO: switch_to current_running
+    switch_to(last_run, current_running);
 }
 
 void do_sleep(uint32_t sleep_time)

@@ -47,28 +47,59 @@ static void init_pcb_stack(
     regs_context_t *pt_regs =
         (regs_context_t *)(kernel_stack - sizeof(regs_context_t));
     
-    /* TODO: initialization registers
+    /* TO DO: initialization registers
      * note: sp, gp, ra, sepc, sstatus
      * gp should be __global_pointer$
      * To run the task in user mode,
      * you should set corresponding bits of sstatus(SPP, SPIE, etc.).
      */
+    //general-purpose registers
+    for(int i = 0; i < 32; i++){
+    	pt_regs->regs[i] = 0;
+    }
+    pt_regs->regs[OFFSET_REG_GP / 8] = __global_pointer;
+    //TODO: some special regs in above regs:
+     //csw registers
+     //TODO
 
     // set sp to simulate return from switch_to
-    /* TODO: you should prepare a stack, and push some values to
+    /* TO DO: you should prepare a stack, and push some values to
      * simulate a pcb context.
      */
+    switchto_context_t *switchto_regs =
+    	(switchto_context_t *)(kernel_stack - sizeof(regs_context_t) - sizeof(switchto_context_t));
+    for(i = 0; i < 14; i++){
+    	switchto_regs->regs[i] = 0;
+    }
+    //init ra and sp, while other general purpose regs stay zero
+    switchto_regs->regs[0] = entry_point;
+    switchto_regs->regs[1] = user_stack;
+    pcb->kernel_sp = switchto_regs;
 }
 
 static void init_pcb()
 {
-     /* initialize all of your pcb and add them into ready_queue
-     * TODO:
-     */
+     /* initialize all of your pcb and add them into ready_queue     */
+     init_list_head(&ready_queue);
+     for(int i = 0; i < num_sched1_tasks; i++){
+     	//init a pcb of a task
+     	task_info * task = sched1_tasks[i];
+     	pcb[i].pid = i+1;
+     	pcb[i].kernel_sp = allocPage(1);
+     	pcb[i].user_sp = allocPage(1);
+     	pcb[i].preempt_count = 0;
+     	pcb[i].type = task->type;
+     	pcb[i].status = TASK_READY;
+     	pcb[i].cursor_x = 0;
+     	pcb[i].cursor_y = 0;
+     	//init pcb stack
+     	init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, task->entry_point, pcb + i);
+     	//add to ready_queue
+     	list_add(&(pcb[i].list), &ready_queue);
+     }
 
-    /* remember to initialize `current_running`
-     * TODO:
-     */
+    /* remember to initialize `current_running`*/
+     current_running = &pid0_pcb;
 }
 
 static void init_syscall(void)

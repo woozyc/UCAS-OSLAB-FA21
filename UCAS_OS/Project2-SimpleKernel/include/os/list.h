@@ -40,12 +40,31 @@
 #include <type.h>
 
 // double-linked list
-//   TODO: use your own list design!!
+//   TO DO: use your own list design!!
 typedef struct list_node
 {
     struct list_node *next, *prev;
 } list_node_t;
 
 typedef list_node_t list_head;
+
+void init_list_head(list_head *head){
+	head->next = head;
+	head->prev = head;
+}
+void list_add(list_node_t *node, list_node_t *prev){
+	prev->next->prev = node;
+	node->next = prev->next;
+	node->prev = prev;
+	prev->next = node;
+}
+void list_del(list_node_t *node){
+	if(node->prev != NULL && node->next != NULL){
+		node->next->prev = node->prev;
+		node->prev->next = node->next;
+		node->prev = NULL;
+		node->prev = NULL;
+	}
+}
 
 #endif
