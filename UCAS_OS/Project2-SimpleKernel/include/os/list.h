@@ -48,17 +48,17 @@ typedef struct list_node
 
 typedef list_node_t list_head;
 
-void init_list_head(list_head *head){
+static inline void init_list_head(list_head *head){
 	head->next = head;
 	head->prev = head;
 }
-void list_add(list_node_t *node, list_node_t *prev){
+static inline void list_add(list_node_t *node, list_node_t *prev){
 	prev->next->prev = node;
 	node->next = prev->next;
 	node->prev = prev;
 	prev->next = node;
 }
-void list_del(list_node_t *node){
+static inline void list_del(list_node_t *node){
 	if(node->prev != NULL && node->next != NULL){
 		node->next->prev = node->prev;
 		node->prev->next = node->next;

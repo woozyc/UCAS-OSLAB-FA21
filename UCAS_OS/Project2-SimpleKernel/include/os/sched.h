@@ -34,7 +34,7 @@
 #include <os/mm.h>
 
 #define NUM_MAX_TASK 16
-#define LIST_TO_PCB(list) (list) - 3 * sizeof(reg_t)
+#define LIST_TO_PCB(list) (pcb_t *)((list) - 3 * sizeof(reg_t))
 
 /* used to save register infomation */
 typedef struct regs_context

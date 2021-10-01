@@ -28,6 +28,7 @@
 
 #include <test2.h>
 #include <os/sched.h>
+#include <os/syscall.h>
 
 extern struct task_info *sched1_tasks[16];
 extern int num_sched1_tasks;

@@ -3,7 +3,7 @@
 #include <os/irq.h>
 #include <type.h>
 
-LIST_HEAD(timers);
+//init_list_head(&timers);
 
 uint64_t time_elapsed = 0;
 uint32_t time_base = 0;

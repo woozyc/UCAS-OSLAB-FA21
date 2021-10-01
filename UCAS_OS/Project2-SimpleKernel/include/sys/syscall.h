@@ -28,6 +28,7 @@
 #ifndef INCLUDE_SYSCALL_H_
 #define INCLUDE_SYSCALL_H_
 
+#include <os/syscall.h>
 #include <os/syscall_number.h>
 #include <stdint.h>
 

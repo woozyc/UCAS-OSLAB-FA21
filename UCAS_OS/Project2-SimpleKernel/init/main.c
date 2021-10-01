@@ -34,6 +34,7 @@
 #include <os/time.h>
 #include <os/syscall.h>
 #include <test.h>
+#include <os/list.h>
 
 #include <csr.h>
 
@@ -57,7 +58,7 @@ static void init_pcb_stack(
     for(int i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
-    pt_regs->regs[3] = __global_pointer$;
+    pt_regs->regs[3] = (reg_t)__global_pointer$;
     //TODO: some special regs in above regs:
      //csw registers
      //TODO
@@ -73,8 +74,8 @@ static void init_pcb_stack(
     }
     //init ra and sp, while other general purpose regs stay zero
     switchto_regs->regs[0] = entry_point;
-    switchto_regs->regs[1] = user_stack;
-    pcb->kernel_sp = switchto_regs;
+    switchto_regs->regs[1] = (reg_t)user_stack;
+    pcb->kernel_sp = (reg_t)switchto_regs;
 }
 
 static void init_pcb()

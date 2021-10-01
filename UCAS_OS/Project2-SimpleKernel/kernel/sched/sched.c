@@ -17,7 +17,7 @@ pcb_t pid0_pcb = {
     .preempt_count = 0
 };
 
-LIST_HEAD(ready_queue);
+list_head ready_queue;
 
 /* current running task PCB */
 pcb_t * volatile current_running;
@@ -27,10 +27,10 @@ pid_t process_id = 1;
 
 void do_scheduler(void)
 {
-    // TODO schedule
+    // TO DO schedule
     // Modify the current_running pointer.
-    pcb *last_run = current_running;
-    if(ready_queue.prev == ready_queue){
+    pcb_t *last_run = current_running;
+    if(ready_queue.prev == &ready_queue){
     	return ;
     }
     //enqueue to head.next, dequeue from head.prev
@@ -38,9 +38,9 @@ void do_scheduler(void)
     list_del(last_list);
     current_running = LIST_TO_PCB(last_list);
     current_running->status = TASK_RUNNING;
-    if(*last_run != pid0_pcb){//do not enqueue pid 0
+    if(last_run->pid != 0){//do not enqueue pid 0
     	last_run->status = TASK_READY;
-    	list_add(last_run, &ready_queue);
+    	list_add(&(last_run->list), &ready_queue);
     }
     //save screen cursor
     last_run->cursor_x = screen_cursor_x;
