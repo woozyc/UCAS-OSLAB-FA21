@@ -38,6 +38,9 @@
 
 #include <csr.h>
 
+//0 for test_scheduler; 1 for test_lock; 2 for ; 3 for 
+int TEST_TASK = 1;
+
 extern void ret_from_exception();
 extern void __global_pointer$();
 
@@ -84,10 +87,28 @@ static void init_pcb()
      /* initialize all of your pcb and add them into ready_queue     */
      init_list_head(&ready_queue);
      int i;
-     struct task_info * task;
-     for(i = 0; i < num_sched1_tasks; i++){
+     struct task_info *task;
+     struct task_info **task_list;
+     int task_num = 0;
+     switch(TEST_TASK){
+     	case 0:
+     		task_num = num_sched1_tasks;
+     		task_list = sched1_tasks; break;
+     	case 1:
+     		task_num = num_lock_tasks;
+     		task_list = lock_tasks; break;
+     	case 2:
+     		task_num = num_sched1_tasks;
+     		task_list = sched1_tasks; break;
+     	case 3:
+     		task_num = num_sched1_tasks;
+     		task_list = sched1_tasks; break;
+     	default:
+     		break;
+     }
+     for(i = 0; i < task_num; i++){
      	//init a pcb of a task
-     	task = sched1_tasks[i];
+     	task = task_list[i];
      	pcb[i].pid = i+1;
      	pcb[i].kernel_sp = allocPage(1);
      	pcb[i].user_sp = allocPage(1);

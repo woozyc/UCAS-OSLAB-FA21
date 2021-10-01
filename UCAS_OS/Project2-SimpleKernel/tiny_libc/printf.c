@@ -235,6 +235,8 @@ int printf(const char *fmt, ...)
     va_start(va, fmt);
     ret = vprintf(fmt, va);
     va_end(va);
+    //for part I print
+    screen_reflush();
 
     return ret;
 }

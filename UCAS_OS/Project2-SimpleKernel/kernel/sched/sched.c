@@ -51,7 +51,7 @@ void do_scheduler(void)
                       current_running->cursor_y);
     screen_cursor_x = current_running->cursor_x;
     screen_cursor_y = current_running->cursor_y;
-    // TODO: switch_to current_running
+    // TO DO: switch_to current_running
     switch_to(last_run, current_running);
 }
 
@@ -66,10 +66,19 @@ void do_sleep(uint32_t sleep_time)
 
 void do_block(list_node_t *pcb_node, list_head *queue)
 {
-    // TODO: block the pcb task into the block queue
+    // TO DO: block the pcb task into the block queue
+    list_add(pcb_node, queue);
+    pcb_t *pcb = LIST_TO_PCB(pcb_node);
+    pcb->status = TASK_BLOCKED;
+    do_scheduler();
 }
 
 void do_unblock(list_node_t *pcb_node)
 {
-    // TODO: unblock the `pcb` from the block queue
+    // TO DO: unblock the `pcb` from the block queue
+    list_del(pcb_node);
+    list_add(pcb_node, &ready_queue);
+    pcb_t *pcb = LIST_TO_PCB(pcb_node);
+    pcb->status = TASK_READY;
+    do_scheduler();
 }
