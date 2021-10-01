@@ -6,7 +6,7 @@ CFLAGS = -O0  -fno-builtin -nostdlib -T riscv.lds -Wall -mcmodel=medany -Iinclud
 DISK = /dev/sdc
 
 BOOTLOADER_ENTRYPOINT = 0x50200000
-KERNEL_ENTRYPOINT = 0x50201000
+KERNEL_ENTRYPOINT = 0x50200000
 
 ARCH = riscv
 ARCH_DIR = ./arch/$(ARCH)

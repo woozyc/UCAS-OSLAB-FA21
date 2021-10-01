@@ -55,7 +55,8 @@ static void init_pcb_stack(
      * you should set corresponding bits of sstatus(SPP, SPIE, etc.).
      */
     //general-purpose registers
-    for(int i = 0; i < 32; i++){
+    int i;
+    for(i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
     pt_regs->regs[3] = (reg_t)__global_pointer$;
@@ -69,7 +70,7 @@ static void init_pcb_stack(
      */
     switchto_context_t *switchto_regs =
     	(switchto_context_t *)(kernel_stack - sizeof(regs_context_t) - sizeof(switchto_context_t));
-    for(int i = 0; i < 14; i++){
+    for(i = 0; i < 14; i++){
     	switchto_regs->regs[i] = 0;
     }
     //init ra and sp, while other general purpose regs stay zero
@@ -82,9 +83,11 @@ static void init_pcb()
 {
      /* initialize all of your pcb and add them into ready_queue     */
      init_list_head(&ready_queue);
-     for(int i = 0; i < num_sched1_tasks; i++){
+     int i;
+     struct task_info * task;
+     for(i = 0; i < num_sched1_tasks; i++){
      	//init a pcb of a task
-     	struct task_info * task = sched1_tasks[i];
+     	task = sched1_tasks[i];
      	pcb[i].pid = i+1;
      	pcb[i].kernel_sp = allocPage(1);
      	pcb[i].user_sp = allocPage(1);

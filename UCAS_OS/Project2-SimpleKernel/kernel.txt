@@ -285,17 +285,17 @@ Disassembly of section .text:
     502012cc:	fc843783          	ld	a5,-56(s0)
     502012d0:	e7078793          	addi	a5,a5,-400
     502012d4:	fcf43c23          	sd	a5,-40(s0)
-    502012d8:	fe042423          	sw	zero,-24(s0)
+    502012d8:	fe042623          	sw	zero,-20(s0)
     502012dc:	a831                	j	502012f8 <init_pcb_stack+0x86>
     502012de:	fd843703          	ld	a4,-40(s0)
-    502012e2:	fe842783          	lw	a5,-24(s0)
+    502012e2:	fec42783          	lw	a5,-20(s0)
     502012e6:	078e                	slli	a5,a5,0x3
     502012e8:	97ba                	add	a5,a5,a4
     502012ea:	0007b023          	sd	zero,0(a5)
-    502012ee:	fe842783          	lw	a5,-24(s0)
+    502012ee:	fec42783          	lw	a5,-20(s0)
     502012f2:	2785                	addiw	a5,a5,1
-    502012f4:	fef42423          	sw	a5,-24(s0)
-    502012f8:	fe842783          	lw	a5,-24(s0)
+    502012f4:	fef42623          	sw	a5,-20(s0)
+    502012f8:	fec42783          	lw	a5,-20(s0)
     502012fc:	0007871b          	sext.w	a4,a5
     50201300:	47b5                	li	a5,13
     50201302:	fce7dee3          	bge	a5,a4,502012de <init_pcb_stack+0x6c>
