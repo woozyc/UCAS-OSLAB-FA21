@@ -80,6 +80,7 @@ ENTRY(switch_to)
   /* TODO: store all callee save registers,
    * see the definition of `struct switchto_context` in sched.h*/
   //tp: last_run pcb addr, we can also use a0 reg
+  mv tp, a0
   ld tp, PCB_KERNEL_SP(tp)
   //tp now is the kernel_sp of last_run pcb
   //continue to add on tp to find switch_to context
@@ -100,7 +101,7 @@ ENTRY(switch_to)
   // restore next
   /* TO DO: restore all callee save registers,
    * see the definition of `struct switchto_context` in sched.h*/
-  mv tp, a1;
+  mv tp, a1
   //tp now is the addr of current_running pcb
   ld tp, PCB_KERNEL_SP(tp)
   //tp now is the kernel_sp of last_run pcb
@@ -121,7 +122,7 @@ ENTRY(switch_to)
   ld s11, SWITCH_TO_S11(tp)
   //according to the routine,
   //tp should stay the same as current_running
-  mv tp, a1;
+  mv tp, a1
   //jump to current_running's entry point
   jr ra
 ENDPROC(switch_to)

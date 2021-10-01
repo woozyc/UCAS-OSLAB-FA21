@@ -62,7 +62,7 @@ static inline void list_del(list_node_t *node){
 	if(node->prev != NULL && node->next != NULL){
 		node->next->prev = node->prev;
 		node->prev->next = node->next;
-		node->prev = NULL;
+		node->next = NULL;
 		node->prev = NULL;
 	}
 }

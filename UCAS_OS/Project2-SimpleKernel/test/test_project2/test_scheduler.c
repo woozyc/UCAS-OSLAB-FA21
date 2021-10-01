@@ -15,6 +15,7 @@ void print_task1(void)
     for (i = 0;; i++)
     {
         sys_move_cursor(1, print_location);
+        printk("Printing");
         printf("> [TASK] This task is to test scheduler. (%d)", i);
         sys_yield();
     }

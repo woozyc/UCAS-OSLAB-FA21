@@ -126,17 +126,21 @@ int main()
     //TODO:
     //init_exception();
     //printk("> [INIT] Interrupt processing initialization succeeded.\n\r");
+    printk("> [INIT] Interrupt processing initialization skipped.\n\r");
 
     // init system call table (0_0)
     //TODO:
     //init_syscall();
     //printk("> [INIT] System call initialized successfully.\n\r");
+    printk("> [INIT] System call initialization skipped.\n\r");
 
     // fdt_print(riscv_dtb);
 
     // init screen (QAQ)
+    //TODO:
     init_screen();
     printk("> [INIT] SCREEN initialization succeeded.\n\r");
+    //printk("> [INIT] SCREEN initialization skipped.\n\r");
 
     // TODO:
     // Setup timer interrupt and enable all interrupt
