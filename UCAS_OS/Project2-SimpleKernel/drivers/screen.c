@@ -60,7 +60,7 @@ static void screen_write_ch(char ch)
 
 void init_screen(void)
 {
-    //vt100_hidden_cursor();
+    vt100_hidden_cursor();
     vt100_clear();
 }
 

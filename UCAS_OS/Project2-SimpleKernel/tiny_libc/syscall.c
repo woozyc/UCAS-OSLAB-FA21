@@ -20,6 +20,8 @@ void sys_reflush()
 void sys_move_cursor(int x, int y)
 {
     // TODO:
+    //only for part I test
+    screen_move_cursor(x, y);
 }
 
 long sys_get_timebase()
