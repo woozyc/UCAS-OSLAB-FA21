@@ -123,12 +123,14 @@ int main()
     time_base = sbi_read_fdt(TIMEBASE);
 
     // init interrupt (^_^)
-    init_exception();
-    printk("> [INIT] Interrupt processing initialization succeeded.\n\r");
+    //TODO:
+    //init_exception();
+    //printk("> [INIT] Interrupt processing initialization succeeded.\n\r");
 
     // init system call table (0_0)
-    init_syscall();
-    printk("> [INIT] System call initialized successfully.\n\r");
+    //TODO:
+    //init_syscall();
+    //printk("> [INIT] System call initialized successfully.\n\r");
 
     // fdt_print(riscv_dtb);
 
