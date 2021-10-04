@@ -53,13 +53,13 @@ $ target remote :1234
 ```sh
 $ sudo sh run_qemu.sh
 ```
-当出现大写加粗“NUTSHELL”字样时，输入loadboot加载镜像。
+当出现大写加粗“ **NUTSHELL** ”字样时，输入loadboot加载镜像。
 ### 上板运行
 将分好区的SD卡接入电脑，在项目目录下输入：
 ```sh
 $ make floppy
 ```
-启动SD卡制作完成，插入PYNQ-Z2实验开发板，将开发板链接至电脑。
+启动SD卡制作完成，插入PYNQ-Z2实验开发板，将开发板连接至电脑。
 使用指令：
 ```sh
 $ sudo minicom
