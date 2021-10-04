@@ -28,41 +28,41 @@
 ## 使用方法
 ### 编译
 首先确保机器以安装RISCV交叉编译环境\
-之后在UCAS/ProjectX-xxxx目录下终端输入：
-```
-make all
+之后在`UCAS/ProjectX-xxxx`目录下终端输入：
+```sh
+$ make all
 ```
 即可生成单个项目的image镜像文件。详见各项目目录下的Makefile。
 ### 调试
 本实验使用QEMU模拟硬件环境，使用gdb连接调试。\
 首先更改run_qemu.sh和debug.sh中的image路径为想要调试的项目中编译好的image\
 然后在仓库根目录下运行debug.sh：
-```
-sudo sh debug.sh
+```sh
+$ sudo sh debug.sh
 ```
 另开一个终端运行gdb：
-```
-riscv64-unknown-linux-gnu-gdb
+```sh
+$ riscv64-unknown-linux-gnu-gdb
 ```
 在gdb中连接本地qemu：
-```
-target remote :1234
+```sh
+$ target remote :1234
 ```
 即可进行调试。
 或者不调试直接运行：
-```
-sudo sh run_qemu.sh
+```sh
+$ sudo sh run_qemu.sh
 ```
 当出现大写加粗“NUTSHELL”字样时，输入loadboot加载镜像。
 ### 上板运行
 将分好区的SD卡接入电脑，在项目目录下输入：
-```
-make floppy
+```sh
+$ make floppy
 ```
 启动SD卡制作完成，插入PYNQ-Z2实验开发板，将开发板链接至电脑。
 使用指令：
-```
-sudo minicom
+```sh
+$ sudo minicom
 ```
 连接开发板后加载镜像，即可在终端看到打印结果。
 ## 时间表
