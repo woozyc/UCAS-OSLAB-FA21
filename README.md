@@ -24,7 +24,7 @@
 
  + Task1: 进程的非抢占式调度
  + Task2: 互斥锁
- _To be continued..._
+ <br>_To be continued..._
 ## 使用方法
 ### 编译
 首先确保机器以安装RISCV交叉编译环境\
@@ -70,6 +70,6 @@ $ sudo minicom
 2021.09.06-09.18: Project1\
 2021.09.18-10.04: Project2-part1 (Task1 & 2)\
 2021.10.04-10.18: Project2-part2 ()\
- _To be continued..._
+ <br>_To be continued..._
 
 
