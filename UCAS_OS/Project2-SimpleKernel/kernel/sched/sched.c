@@ -38,7 +38,7 @@ void do_scheduler(void)
     list_del(last_list);
     current_running = LIST_TO_PCB(last_list);
     current_running->status = TASK_RUNNING;
-    if(last_run->pid != 0){//do not enqueue pid 0
+    if(last_run->pid != 0 && last_run->status == TASK_RUNNING){//do not enqueue pid 0
     	last_run->status = TASK_READY;
     	list_add(&(last_run->list), &ready_queue);
     }
@@ -67,6 +67,7 @@ void do_sleep(uint32_t sleep_time)
 void do_block(list_node_t *pcb_node, list_head *queue)
 {
     // TO DO: block the pcb task into the block queue
+    list_del(pcb_node);
     list_add(pcb_node, queue);
     pcb_t *pcb = LIST_TO_PCB(pcb_node);
     pcb->status = TASK_BLOCKED;

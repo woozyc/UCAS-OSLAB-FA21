@@ -39,7 +39,7 @@
 #include <csr.h>
 
 //0 for test_scheduler; 1 for test_lock; 2 for ; 3 for 
-int TEST_TASK = 1;
+int TEST_TASK = 0;
 
 extern void ret_from_exception();
 extern void __global_pointer$();
@@ -106,9 +106,9 @@ static void init_pcb()
      	default:
      		break;
      }
-     for(i = 0; i < task_num; i++){
+     for(i = 0; i < num_sched1_tasks; i++){
      	//init a pcb of a task
-     	task = task_list[i];
+     	task = sched1_tasks[i];
      	pcb[i].pid = i+1;
      	pcb[i].kernel_sp = allocPage(1);
      	pcb[i].user_sp = allocPage(1);
@@ -121,6 +121,24 @@ static void init_pcb()
      	init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, task->entry_point, pcb + i);
      	//add to ready_queue
      	list_add(&(pcb[i].list), &ready_queue);
+     }
+     int j;
+     for(i = 0; i < num_lock_tasks; i++){
+     	//init a pcb of a task
+     	j = i + num_sched1_tasks;
+     	task = lock_tasks[i];
+     	pcb[j].pid = j+1;
+     	pcb[j].kernel_sp = allocPage(1);
+     	pcb[j].user_sp = allocPage(1);
+     	pcb[j].preempt_count = 0;
+     	pcb[j].type = task->type;
+     	pcb[j].status = TASK_READY;
+     	pcb[j].cursor_x = 0;
+     	pcb[j].cursor_y = 0;
+     	//init pcb stack
+     	init_pcb_stack(pcb[j].kernel_sp, pcb[j].user_sp, task->entry_point, pcb + j);
+     	//add to ready_queue
+     	list_add(&(pcb[j].list), &ready_queue);
      }
 
     /* remember to initialize `current_running`*/

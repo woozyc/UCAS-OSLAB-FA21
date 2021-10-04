@@ -13,7 +13,7 @@ void do_mutex_lock_acquire(mutex_lock_t *lock)
 {
     /* TO DO */
     if(lock->lock.status == LOCKED)
-        do_block(current_running, &lock->block_queue);
+        do_block(&(current_running->list), &lock->block_queue);
     else
         lock->lock.status = LOCKED;
 }
@@ -24,6 +24,6 @@ void do_mutex_lock_release(mutex_lock_t *lock)
     if(lock->block_queue.prev == &lock->block_queue)//no pcb waiting
         lock->lock.status = UNLOCKED;
     else{
-        do_unblock(&lock->block_queue);
+        do_unblock(lock->block_queue.prev);
     }
 }

@@ -29,14 +29,27 @@
 
 #include <stdint.h>
 #include <stdatomic.h>
+#include <os/list.h>
 
 /* on success, these functions return zero. Otherwise, return an error number */
 #define EBUSY  1 /* the lock is busy(for example, it is locked by another thread) */
 #define EINVAL 2 /* the lock is invalid */
 
+typedef enum {
+    UNLOCKED,
+    LOCKED,
+} lock_status_t;
+
+typedef struct spin_lock
+{
+    volatile lock_status_t status;
+} spin_lock_t;
+
 typedef struct mthread_mutex
 {
-    // TODO:
+    // TO DO:
+    spin_lock_t lock;
+    list_head block_queue;
 } mthread_mutex_t;
 
 int mthread_mutex_init(void* handle);
