@@ -28,8 +28,6 @@
 #ifndef INCLUDE_TIME_H_
 #define INCLUDE_TIME_H_
 
-#define LIST_TO_PCB(list) (pcb_t *)((char *)(list) - 24)
-
 #include <type.h>
 #include <os/list.h>
 
@@ -43,6 +41,8 @@ uint64_t get_ticks(void);
 extern uint64_t get_time_base();
 
 void latency(uint64_t time);
+
+void timer_check();
 
 extern list_head sleep_queue;
 

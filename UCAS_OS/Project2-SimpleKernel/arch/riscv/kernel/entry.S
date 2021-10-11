@@ -64,7 +64,7 @@ _save_context:
    * space.
    */
   li t0, SR_SUM | SR_FS
-  csrrc s2, CSR_STATUS, t0
+  csrrc s2, CSR_SSTATUS, t0
 
   /* TO DO: save sstatus, sepc, stval, scause and sscratch on user stack */
   sd s2, OFFSET_REG_SSTATUS(sp)
@@ -89,7 +89,7 @@ _save_context:
   csrw CSR_SEPC, a0
   
   ld a1, OFFSET_REG_SSTATUS(sp)
-  csrw CSR_STATUS, a1
+  csrw CSR_SSTATUS, a1
   
   ld ra, OFFSET_REG_RA(sp) 
   ld sp, OFFSET_REG_SP(sp)   
@@ -241,7 +241,7 @@ ENTRY(exception_handler_entry)
    * note: don't forget to pass parameters for it.
    */
   ld a0, PCB_KERNEL_SP(tp)
-  addi a0, SWITCH_TO_SIZE
+  addi a0, a0, SWITCH_TO_SIZE
   csrr a1, CSR_STVAL
   csrr a2, CSR_SCAUSE
   call interrupt_helper

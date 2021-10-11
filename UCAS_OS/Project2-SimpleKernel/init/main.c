@@ -80,9 +80,9 @@ static void init_pcb_stack(
     }
     //init ra and sp, while other general purpose regs stay zero
     if (pcb->type == USER_PROCESS || pcb->type == USER_THREAD)
-        switchto_regs->regs[0] = &ret_from_exception;
+        switchto_regs->regs[0] = (reg_t)&ret_from_exception;
     else
-	    switchto_regs->regs[0] = entry_point;
+	    switchto_regs->regs[0] = (reg_t)entry_point;
     switchto_regs->regs[1] = (reg_t)user_stack;
     pcb->kernel_sp = (reg_t)switchto_regs;
 }
@@ -145,16 +145,16 @@ static void init_syscall(void)
     // initialize system call table.
     int i;
     for(i = 0; i < NUM_SYSCALLS; i++){
-    	syscall[i] = &err_syscall;
+    	syscall[i] = (long int (*)())&err_syscall;
     }
-    syscall[SYSCALL_SLEEP] = &do_sleep;
-    syscall[SYSCALL_YIELD] = &do_scheduler;
-    syscall[SYSCALL_WRITE] = &screen_write;
+    syscall[SYSCALL_SLEEP] = (long int (*)())&do_sleep;
+    syscall[SYSCALL_YIELD] = (long int (*)())&do_scheduler;
+    syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
     //syscall[SYSCALL_READ] = ;
-    syscall[SYSCALL_CURSOR] = &screen_move_cursor;
-    syscall[SYSCALL_REFLUSH] = &screen_reflush;
-    syscall[SYSCALL_GET_TIMEBASE] = &get_time_base;
-    syscall[SYSCALL_GET_TICK] = &get_ticks;
+    syscall[SYSCALL_CURSOR] = (long int (*)())&screen_move_cursor;
+    syscall[SYSCALL_REFLUSH] = (long int (*)())&screen_reflush;
+    syscall[SYSCALL_GET_TIMEBASE] = (long int (*)())&get_time_base;
+    syscall[SYSCALL_GET_TICK] = (long int (*)())&get_ticks;
     
     //init sleep_queue
 	init_list_head(&sleep_queue);

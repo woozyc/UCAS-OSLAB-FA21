@@ -2,6 +2,7 @@
 #include <os/time.h>
 #include <os/sched.h>
 #include <os/string.h>
+#include <csr.h>
 #include <stdio.h>
 #include <assert.h>
 #include <sbi.h>

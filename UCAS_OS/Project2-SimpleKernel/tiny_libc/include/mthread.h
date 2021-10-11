@@ -56,4 +56,9 @@ int mthread_mutex_init(void* handle);
 int mthread_mutex_lock(void* handle);
 int mthread_mutex_unlock(void* handle);
 
+
+void do_mutex_lock_init(void *lock);
+void do_mutex_lock_acquire(void *lock);
+void do_mutex_lock_release(void *lock);
+
 #endif

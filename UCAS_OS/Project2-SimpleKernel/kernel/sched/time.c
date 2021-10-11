@@ -1,7 +1,7 @@
 #include <os/time.h>
 #include <os/mm.h>
 #include <os/irq.h>
-#include <os/list.h>
+#include <os/sched.h>
 #include <type.h>
 
 list_head sleep_queue;
@@ -40,9 +40,9 @@ void timer_check(){
 	if(sleep_node->next == &sleep_queue)
 		return ;
 	long int current_tick;
-	for(sleep_node = sleep_node->next; sleep_node != sleep_queue; ){
+	for(sleep_node = sleep_node->next; sleep_node != &sleep_queue; ){
 		sleep_node = sleep_node->next;
-		current_tick = getticks();
+		current_tick = get_ticks();
 		if(LIST_TO_PCB(sleep_node->prev)->wake_up_time <= current_tick){
 			do_unblock(sleep_node->prev);
 		}
