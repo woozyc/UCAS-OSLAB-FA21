@@ -13,19 +13,28 @@ uintptr_t riscv_dtb;
 
 void reset_irq_timer()
 {
-    // TODO clock interrupt handler.
-    // TODO: call following functions when task4
-    // screen_reflush();
-    // timer_check();
+    // TO DO clock interrupt handler.
+    // TO DO: call following functions when task4
+    screen_reflush();
+    timer_check();
 
     // note: use sbi_set_timer
+    sbi_set_timer(get_ticks() + TIMER_INTERVAL);
     // remember to reschedule
+    do_scheduler();
 }
 
 void interrupt_helper(regs_context_t *regs, uint64_t stval, uint64_t cause)
 {
-    // TODO interrupt handler.
+    // TO DO interrupt handler.
     // call corresponding handler by the value of `cause`
+    uint64_t irq_type = cause & SCAUSE_IRQ_FLAG;
+    uint64_t irq_code = cause & ~SCAUSE_IRQ_FLAG;
+    if(irq_type){
+    	irq_table[irq_code](regs, stval, cause);
+    }else{
+    	exc_table[irq_code](regs, stval, cause);
+    }
 }
 
 void handle_int(regs_context_t *regs, uint64_t interrupt, uint64_t cause)
@@ -35,8 +44,16 @@ void handle_int(regs_context_t *regs, uint64_t interrupt, uint64_t cause)
 
 void init_exception()
 {
-    /* TODO: initialize irq_table and exc_table */
+    /* TO DO: initialize irq_table and exc_table */
     /* note: handle_int, handle_syscall, handle_other, etc.*/
+	int i;
+	for(i = 0; i < IRQC_COUNT; i++){
+		irq_table[i] = &handle_int;
+	}
+	for(i = 0; i < EXCC_COUNT; i++){
+		exc_table[i] = &handle_other;
+	}
+	exc_table[EXCC_SYSCALL] = &handle_syscall;
 
     setup_exception();
 }

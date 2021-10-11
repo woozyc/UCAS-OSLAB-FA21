@@ -4,41 +4,43 @@
 
 void sys_sleep(uint32_t time)
 {
-    // TODO:
-}
-
-void sys_write(char *buff)
-{
-    // TODO:
-}
-
-void sys_reflush()
-{
-    // TODO:
-}
-
-void sys_move_cursor(int x, int y)
-{
-    // TODO:
-    //only for part I test
-    screen_move_cursor(x, y);
-}
-
-long sys_get_timebase()
-{
-    // TODO:
-}
-
-long sys_get_tick()
-{
-    // TODO:
+    // TO DO:
+    invoke_syscall(SYSCALL_SLEEP, time, IGNORE, IGNORE);
 }
 
 void sys_yield()
 {
-    // TODO:
-    // invoke_syscall(SYSCALL_YIELD, IGNORE, IGNORE, IGNORE);
-    //   or
-    do_scheduler();
-    // ???
+    // TO DO:
+    invoke_syscall(SYSCALL_YIELD, IGNORE, IGNORE, IGNORE);
 }
+
+void sys_write(char *buff)
+{
+    // TO DO:
+    invoke_syscall(SYSCALL_WRITE, (uintptr_t)buff, IGNORE, IGNORE);
+}
+
+void sys_move_cursor(int x, int y)
+{
+    // TO DO:
+    invoke_syscall(SYSCALL_CURSOR, x, y, IGNORE);
+}
+
+void sys_reflush()
+{
+    // TO DO:
+    invoke_syscall(SYSCALL_REFLUSH, IGNORE, IGNORE, IGNORE);
+}
+
+long sys_get_timebase()
+{
+    // TO DO:
+    return invoke_syscall(SYSCALL_GET_TIMEBASE, IGNORE, IGNORE, IGNORE);
+}
+
+long sys_get_tick()
+{
+    // TO DO:
+    return invoke_syscall(SYSCALL_GET_TICK, IGNORE, IGNORE, IGNORE);
+}
+

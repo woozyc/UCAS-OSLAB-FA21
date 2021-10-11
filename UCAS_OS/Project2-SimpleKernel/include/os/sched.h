@@ -97,6 +97,9 @@ typedef struct pcb
     /* cursor position */
     int cursor_x;
     int cursor_y;
+    
+    /* sleep wake up time */
+    unsigned int wake_up_time;
 } pcb_t;
 
 /* task information, used to init PCB */

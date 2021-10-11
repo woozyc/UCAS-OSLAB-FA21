@@ -222,8 +222,8 @@ int vprintf(const char *fmt, va_list _va)
     buff[ret] = '\0';
 
     //call kernel print function or ecall
-    //sys_write(buff);                                                     
-    screen_write(buff);
+    sys_write(buff);                                                     
+    //screen_write(buff);
     return ret;
 }
 
@@ -235,8 +235,6 @@ int printf(const char *fmt, ...)
     va_start(va, fmt);
     ret = vprintf(fmt, va);
     va_end(va);
-    //for part I print
-    screen_reflush();
 
     return ret;
 }

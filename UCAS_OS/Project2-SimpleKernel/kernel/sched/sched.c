@@ -57,11 +57,14 @@ void do_scheduler(void)
 
 void do_sleep(uint32_t sleep_time)
 {
-    // TODO: sleep(seconds)
+    // TO DO: sleep(seconds)
     // note: you can assume: 1 second = `timebase` ticks
     // 1. block the current_running
     // 2. create a timer which calls `do_unblock` when timeout
     // 3. reschedule because the current_running is blocked.
+    current_running->status = TASK_BLOCKED;
+    current_running->wake_up_time = get_ticks() + sleep_time * time_base;
+    do_scheduler();
 }
 
 void do_block(list_node_t *pcb_node, list_head *queue)

@@ -16,6 +16,9 @@ struct task_info task2_5 = {(ptr_t)&lock_task2, KERNEL_THREAD};
 struct task_info *lock_tasks[16] = {&task2_4, &task2_5};
 int num_lock_tasks = 2;
 
+struct task_info *sched1_lock_tasks[16] = {&task2_1, &task2_2, &task2_3, &task2_4, &task2_5};
+int num_sched1_lock_tasks = num_sched1_tasks + num_lock_tasks;
+
 /* [TASK4] task group to test interrupt */
 // When the task is running, please implement the following system call :
 // (1) sys_sleep()
@@ -36,4 +39,7 @@ struct task_info task2_11 = {(ptr_t)&lock_task1, USER_THREAD};
 struct task_info task2_12 = {(ptr_t)&lock_task2, USER_THREAD};
 struct task_info *lock2_tasks[16] = {&task2_11, &task2_12};
 int num_lock2_tasks = 2;
+
+struct task_info *sched2_lock_tasks[16] = {&task2_8, &task2_9, &task2_10, &task2_11, &task2_12};
+int num_sched2_lock_tasks = num_sched2_tasks + num_lock2_tasks;
 
