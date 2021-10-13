@@ -40,7 +40,7 @@
 
 //0 for test_scheduler; 1 for test_lock; 2 for test_scheduler & lock; 3 for test_timer & sleep
 //4 for test_scheduler & lock 2
-int TEST_TASK = 3;
+int TEST_TASK = 4;
 
 extern void ret_from_exception();
 extern void __global_pointer$();
@@ -63,11 +63,14 @@ static void init_pcb_stack(
     for(i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
-    pt_regs->regs[1] = (reg_t)user_stack;
+    pt_regs->regs[2] = (reg_t)user_stack;
     pt_regs->regs[3] = (reg_t)__global_pointer$;
+    pt_regs->regs[4] = (reg_t)pcb;
     //csr registers
     pt_regs->sepc = entry_point;
     pt_regs->sstatus = SR_SPIE & ~SR_SPP;
+    pt_regs->sbadaddr = 0;
+    pt_regs->scause = 0;
 
     // set sp to simulate return from switch_to
     /* TO DO: you should prepare a stack, and push some values to
@@ -138,6 +141,7 @@ static void init_pcb()
 
 static void err_syscall(int64_t num){
 	printk("> [Error] Syscall number error.\n\r");
+	while(1);
 }
 
 static void init_syscall(void)

@@ -52,7 +52,7 @@ _save_context:
   sd t6, OFFSET_REG_T6(sp)
 
   ld s0, PCB_USER_SP(tp)
-  sd s0, OFFSET_REG_SP(tp)
+  sd s0, OFFSET_REG_SP(sp)
   
   csrr s1, CSR_SSCRATCH
   sd s1, OFFSET_REG_TP(tp)
@@ -78,6 +78,8 @@ _save_context:
   csrr s5, CSR_SCAUSE
   sd s5, OFFSET_REG_SCAUSE(sp)
   
+  addi sp, sp, -SWITCH_TO_SIZE
+  
 .endm
 
 .macro RESTORE_CONTEXT
@@ -85,14 +87,13 @@ _save_context:
   ld   sp, PCB_KERNEL_SP(tp)
   addi sp, sp, SWITCH_TO_SIZE
   
-  ld a0, OFFSET_REG_SEPC(sp)
-  csrw CSR_SEPC, a0
+  ld s0, OFFSET_REG_SEPC(sp)
+  csrw CSR_SEPC, s0
   
-  ld a1, OFFSET_REG_SSTATUS(sp)
-  csrw CSR_SSTATUS, a1
+  ld s1, OFFSET_REG_SSTATUS(sp)
+  csrw CSR_SSTATUS, s1
   
-  ld ra, OFFSET_REG_RA(sp) 
-  ld sp, OFFSET_REG_SP(sp)   
+  ld ra, OFFSET_REG_RA(sp)
   ld gp, OFFSET_REG_GP(sp)
   ld tp, OFFSET_REG_TP(sp)
   ld t0, OFFSET_REG_T0(sp)
@@ -122,6 +123,7 @@ _save_context:
   ld t4, OFFSET_REG_T4(sp)
   ld t5, OFFSET_REG_T5(sp)
   ld t6, OFFSET_REG_T6(sp)
+  ld sp, OFFSET_REG_SP(sp)
 .endm
 
 ENTRY(enable_preempt)
@@ -209,7 +211,7 @@ ENTRY(switch_to)
   //according to the routine,
   //tp should stay the same as current_running
   mv tp, a1
-  csrw CSR_SSCRATCH, a1
+  csrw CSR_SSCRATCH, tp
   //jump to current_running's entry point
   jr ra
 ENDPROC(switch_to)
@@ -217,6 +219,8 @@ ENDPROC(switch_to)
 ENTRY(ret_from_exception)
   /* TO DO: */
   RESTORE_CONTEXT
+  //restore user process scratch
+  csrw CSR_SSCRATCH, tp
   sret
 ENDPROC(ret_from_exception)
 
@@ -244,6 +248,7 @@ ENTRY(exception_handler_entry)
   addi a0, a0, SWITCH_TO_SIZE
   csrr a1, CSR_STVAL
   csrr a2, CSR_SCAUSE
-  call interrupt_helper
+  //do not omit x0
+  call x0, interrupt_helper
   
 ENDPROC(exception_handler_entry)

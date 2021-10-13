@@ -25,5 +25,6 @@ void do_mutex_lock_release(mutex_lock_t *lock)
         lock->lock.status = UNLOCKED;
     else{
         do_unblock(lock->block_queue.prev);
+        do_scheduler();
     }
 }

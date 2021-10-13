@@ -64,6 +64,7 @@ void do_sleep(uint32_t sleep_time)
     // 3. reschedule because the current_running is blocked.
     current_running->status = TASK_BLOCKED;
     current_running->wake_up_time = get_ticks() + sleep_time * time_base;
+     list_add(&(current_running->list), &sleep_queue);
     do_scheduler();
 }
 
@@ -84,5 +85,5 @@ void do_unblock(list_node_t *pcb_node)
     list_add(pcb_node, &ready_queue);
     pcb_t *pcb = LIST_TO_PCB(pcb_node);
     pcb->status = TASK_READY;
-    do_scheduler();
+    //do_scheduler();
 }
