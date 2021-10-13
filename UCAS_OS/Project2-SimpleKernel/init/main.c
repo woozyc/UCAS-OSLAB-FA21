@@ -34,12 +34,13 @@
 #include <os/time.h>
 #include <os/syscall.h>
 #include <os/list.h>
+#include <os/lock.h>
 #include <test.h>
 
 #include <csr.h>
 
 //0 for test_scheduler; 1 for test_lock; 2 for test_scheduler & lock; 3 for test_timer & sleep
-//4 for test_scheduler & lock 2
+//4 for test_scheduler & lock 2; 5 for test_timer & scheduler & lock;
 int TEST_TASK = 4;
 
 extern void ret_from_exception();
@@ -114,8 +115,12 @@ static void init_pcb()
      	case 4:
      		task_num = num_sched2_lock_tasks;
      		task_list = sched2_lock_tasks; break;
+     	case 5:
+     		task_num = num_timer_sched2_lock_tasks;
+     		task_list = timer_sched2_lock_tasks; break;
      	default:
-     		break;
+     		printk("test task error\n");
+     		while(1);
      }
      for(i = 0; i < task_num; i++){
      	//init a pcb of a task
@@ -153,6 +158,9 @@ static void init_syscall(void)
     }
     syscall[SYSCALL_SLEEP] = (long int (*)())&do_sleep;
     syscall[SYSCALL_YIELD] = (long int (*)())&do_scheduler;
+    syscall[SYSCALL_MUTEX_INIT] = (long int (*)())&do_mutex_lock_init;
+    syscall[SYSCALL_MUTEX_ACQUIRE] = (long int (*)())&do_mutex_lock_acquire;
+    syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&do_mutex_lock_release;
     syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
     //syscall[SYSCALL_READ] = ;
     syscall[SYSCALL_CURSOR] = (long int (*)())&screen_move_cursor;

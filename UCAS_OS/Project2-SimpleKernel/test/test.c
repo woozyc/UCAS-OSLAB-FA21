@@ -43,3 +43,6 @@ const int num_lock2_tasks = 2;
 struct task_info *sched2_lock_tasks[16] = {&task2_8, &task2_9, &task2_10, &task2_11, &task2_12};
 const int num_sched2_lock_tasks = num_sched2_tasks + num_lock2_tasks;
 
+struct task_info *timer_sched2_lock_tasks[16] = {&task2_6, &task2_7, &task2_8, &task2_9, &task2_10, &task2_11, &task2_12};
+const int num_timer_sched2_lock_tasks = num_timer_tasks + num_sched2_tasks + num_lock2_tasks;
+
