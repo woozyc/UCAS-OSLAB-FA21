@@ -182,6 +182,7 @@ int main()
 
     // read CPU frequency
     time_base = sbi_read_fdt(TIMEBASE);
+    printk("> [INIT] Kernel running at a timebase of %d.\n\r", time_base);
 
     // init interrupt (^_^)
     init_exception();

@@ -30,30 +30,19 @@
 #include <stdint.h>
 #include <stdatomic.h>
 #include <os/list.h>
+#include <os/lock.h>
 
-/* on success, these functions return zero. Otherwise, return an error number */
-#define EBUSY  1 /* the lock is busy(for example, it is locked by another thread) */
-#define EINVAL 2 /* the lock is invalid */
+#define MAX_MUTEX_LOCK 64
 
-typedef enum {
-    UNLOCKED,
-    LOCKED,
-} lock_status_t;
+typedef struct{
+	int key;
+	mutex_lock_t lock_instance;
+} mutex_array_cell;
 
-typedef struct spin_lock
-{
-    volatile lock_status_t status;
-} spin_lock_t;
+typedef int mthread_mutex_t;
 
-typedef struct mthread_mutex
-{
-    // TO DO:
-    spin_lock_t lock;
-    list_head block_queue;
-} mthread_mutex_t;
-
-int mthread_mutex_init(void* handle);
-int mthread_mutex_lock(void* handle);
-int mthread_mutex_unlock(void* handle);
+int mthread_mutex_init(mthread_mutex_t* handle);
+int mthread_mutex_lock(mthread_mutex_t* handle);
+int mthread_mutex_unlock(mthread_mutex_t* handle);
 
 #endif
