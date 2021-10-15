@@ -16,7 +16,7 @@ void print_task1(void)
     {
         sys_move_cursor(1, print_location);
         printf("> [TASK] This task is to test scheduler. (%d)", i);
-        sys_yield();
+        //sys_yield();
     }
 }
 
@@ -29,7 +29,7 @@ void print_task2(void)
     {
         sys_move_cursor(1, print_location);
         printf("> [TASK] This task is to test scheduler. (%d)", i);
-        sys_yield();
+        //sys_yield();
     }
 }
 
@@ -52,8 +52,13 @@ void drawing_task(void)
 
             sys_move_cursor(i, j + 3);
             printf("%s", plane4);
+            
+            //slower down the plane
+            for(int k = 0; k < 4096; k++) ;
+            //sys_move_cursor(1, 20);
+        	//printf("> [TASK] Drawing. (%d)", i);
         }
-        sys_yield();
+        //sys_yield();
 
         sys_move_cursor(1, j + 0);
         printf("%s", blank);

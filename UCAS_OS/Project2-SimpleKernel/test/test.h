@@ -59,4 +59,10 @@ extern const int num_priority_tasks;
 
 extern struct task_info *fork_tasks[16];
 extern const int num_fork_tasks;
+
+extern struct task_info *priority_fork_tasks[16];
+extern const int num_priority_fork_tasks;
+
+extern struct task_info *all_tasks[16];
+extern const int num_all_tasks;
 #endif

@@ -43,8 +43,8 @@
 /* 2 for test_scheduler & lock;   |  3 for test_timer & sleep              */
 /* 4 for test_scheduler & lock 2; |  5 for test_timer & scheduler & lock;  */
 /* 6 for test_priority;           |  7 for test_fork & priority            */
-/*  */
-int TEST_TASK = 7;
+/* 8 for 6 & 7                    |  9 for all (3 to 7)                    */
+int TEST_TASK = 9;
 
 extern void ret_from_exception();
 extern void __global_pointer$();
@@ -127,6 +127,12 @@ static void init_pcb()
      	case 7:
      		task_num = num_fork_tasks;
      		task_list = fork_tasks; break;
+     	case 8:
+     		task_num = num_priority_fork_tasks;
+     		task_list = priority_fork_tasks; break;
+     	case 9:
+     		task_num = num_all_tasks;
+     		task_list = all_tasks; break;
      	default:
      		printk("> [INIT] Test task error\n");
      		while(1);
