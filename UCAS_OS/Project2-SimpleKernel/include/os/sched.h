@@ -70,6 +70,19 @@ typedef enum {
     USER_THREAD,
 } task_type_t;
 
+typedef enum {
+    P_0,
+    P_1,
+    P_2,
+    P_3,
+    P_4,
+    P_5,
+    P_6,
+    P_7,
+    P_8,
+    P_9,
+} task_priority_t;
+
 /* Process Control Block */
 typedef struct pcb
 {
@@ -100,6 +113,13 @@ typedef struct pcb
     
     /* sleep wake up time */
     unsigned int wake_up_time;
+    
+    /* priority */
+    task_priority_t priority;
+    
+    /* last run time */
+    unsigned int sched_time;
+    
 } pcb_t;
 
 /* task information, used to init PCB */
@@ -107,6 +127,7 @@ typedef struct task_info
 {
     ptr_t entry_point;
     task_type_t type;
+    task_priority_t priority;
 } task_info_t;
 
 /* ready queue to run */
@@ -127,5 +148,8 @@ void do_sleep(uint32_t);
 
 void do_block(list_node_t *, list_head *queue);
 void do_unblock(list_node_t *);
+
+void do_priority();
+int do_fork();
 
 #endif

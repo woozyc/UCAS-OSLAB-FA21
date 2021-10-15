@@ -9,3 +9,11 @@ ENTRY(invoke_syscall)
   ecall
   jr ra
 ENDPROC(invoke_syscall)
+ENTRY(sys_fork)
+  li a0, 0
+  li a1, 0
+  li a2, 0
+  li a7, 12
+  ecall
+  jr ra
+ENDPROC(sys_fork)

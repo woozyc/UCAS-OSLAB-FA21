@@ -59,7 +59,7 @@ enum ExcCode
     EXCC_COUNT
 };
 
-#define TIMER_INTERVAL 150000
+#define TIMER_INTERVAL 150000//150000
 
 typedef void (*handler_t)(regs_context_t*, uint64_t, uint64_t);
 

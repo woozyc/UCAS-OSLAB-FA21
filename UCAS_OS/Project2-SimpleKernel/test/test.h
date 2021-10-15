@@ -53,4 +53,10 @@ extern const int num_sched2_lock_tasks;
 
 extern struct task_info *timer_sched2_lock_tasks[16];
 extern const int num_timer_sched2_lock_tasks;
+
+extern struct task_info *priority_tasks[16];
+extern const int num_priority_tasks;
+
+extern struct task_info *fork_tasks[16];
+extern const int num_fork_tasks;
 #endif

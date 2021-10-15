@@ -12,4 +12,12 @@ extern void timer_task(void);
 extern void lock_task1(void);
 extern void lock_task2(void);
 
+//test task added
+extern void priority_task0(void);
+extern void priority_task1(void);
+extern void priority_task2(void);
+extern void priority_task3(void);
+
+extern void fork_task(void);
+
 #endif

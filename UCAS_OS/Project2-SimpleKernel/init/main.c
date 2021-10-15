@@ -38,10 +38,13 @@
 #include <test.h>
 
 #include <csr.h>
-
-//0 for test_scheduler; 1 for test_lock; 2 for test_scheduler & lock; 3 for test_timer & sleep
-//4 for test_scheduler & lock 2; 5 for test_timer & scheduler & lock;
-int TEST_TASK = 4;
+/***************************************************************************/
+/* 0 for test_scheduler;          |  1 for test_lock;                      */
+/* 2 for test_scheduler & lock;   |  3 for test_timer & sleep              */
+/* 4 for test_scheduler & lock 2; |  5 for test_timer & scheduler & lock;  */
+/* 6 for test_priority;           |  7 for test_fork & priority            */
+/*  */
+int TEST_TASK = 7;
 
 extern void ret_from_exception();
 extern void __global_pointer$();
@@ -118,11 +121,17 @@ static void init_pcb()
      	case 5:
      		task_num = num_timer_sched2_lock_tasks;
      		task_list = timer_sched2_lock_tasks; break;
+     	case 6:
+     		task_num = num_priority_tasks;
+     		task_list = priority_tasks; break;
+     	case 7:
+     		task_num = num_fork_tasks;
+     		task_list = fork_tasks; break;
      	default:
-     		printk("test task error\n");
+     		printk("> [INIT] Test task error\n");
      		while(1);
      }
-     for(i = 0; i < task_num; i++){
+     for(i = 0; i < task_num && i < NUM_MAX_TASK; i++){
      	//init a pcb of a task
      	task = task_list[i];
      	pcb[i].pid = i+1;
@@ -134,10 +143,15 @@ static void init_pcb()
      	pcb[i].cursor_x = 0;
      	pcb[i].cursor_y = 0;
      	pcb[i].wake_up_time = 0;
+     	pcb[i].priority = task->priority;
+     	pcb[i].sched_time = get_ticks();
      	//init pcb stack
      	init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, task->entry_point, pcb + i);
      	//add to ready_queue
      	list_add(&(pcb[i].list), &ready_queue);
+     }
+     for(; i < NUM_MAX_TASK; i++){
+     	pcb[i].status = TASK_EXITED;
      }
 
     /* remember to initialize `current_running`*/
@@ -159,14 +173,19 @@ static void init_syscall(void)
     syscall[SYSCALL_SLEEP] = (long int (*)())&do_sleep;
     syscall[SYSCALL_YIELD] = (long int (*)())&do_scheduler;
     syscall[SYSCALL_MUTEX_INIT] = (long int (*)())&do_mutex_lock_init;
+    //lock
     syscall[SYSCALL_MUTEX_ACQUIRE] = (long int (*)())&do_mutex_lock_acquire;
     syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&do_mutex_lock_release;
+    
     syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
-    //syscall[SYSCALL_READ] = ;
+    syscall[SYSCALL_READ] = (long int (*)())&sbi_console_getchar;
     syscall[SYSCALL_CURSOR] = (long int (*)())&screen_move_cursor;
     syscall[SYSCALL_REFLUSH] = (long int (*)())&screen_reflush;
     syscall[SYSCALL_GET_TIMEBASE] = (long int (*)())&get_time_base;
     syscall[SYSCALL_GET_TICK] = (long int (*)())&get_ticks;
+    
+    syscall[SYSCALL_PRIORITY] = (long int (*)())&do_priority;
+    syscall[SYSCALL_FORK] = (long int (*)())&do_fork;
     
     //init sleep_queue
 	init_list_head(&sleep_queue);

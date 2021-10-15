@@ -222,8 +222,8 @@ int vprintf(const char *fmt, va_list _va)
     buff[ret] = '\0';
 
     //call kernel print function or ecall
-    sys_write(buff);                                                     
-    //screen_write(buff);
+    sys_write(buff);
+
     return ret;
 }
 
