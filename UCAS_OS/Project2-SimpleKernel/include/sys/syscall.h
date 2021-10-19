@@ -46,5 +46,6 @@ long sys_get_tick();
 
 void sys_priority(task_priority_t priority);
 int sys_fork();
+uint32_t sys_get_wall_time(uint32_t *_time_elapsed);
 
 #endif

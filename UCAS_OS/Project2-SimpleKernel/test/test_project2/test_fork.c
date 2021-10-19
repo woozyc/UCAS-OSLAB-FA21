@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/syscall.h>
+#include <assert.h>
 
 #define PARENT_PRI P_3
 
@@ -9,6 +10,7 @@ void fork_task(){
 	int is_parent = 1;
 	char c;
 	int child_num = 0;
+	//assert_supervisor_mode();
 	task_priority_t priority = PARENT_PRI;
 	sys_priority(priority);
 	while(1){

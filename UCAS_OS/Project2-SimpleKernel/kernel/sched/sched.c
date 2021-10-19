@@ -29,15 +29,16 @@ pcb_t * volatile current_running;
 pid_t process_id = 1;
 
 //priority scheduler
-unsigned int cal_pcb_weight(pcb_t *pcb){
-	return (pcb->priority << 2) * TIMER_INTERVAL + get_ticks() - pcb->sched_time;
+unsigned long cal_pcb_weight(pcb_t *pcb){
+	//weight was designed carefully
+	return (pcb->priority * time_base) / 128 + get_ticks() - pcb->sched_time;
 }
 
 list_node_t *find_next_proc(){
-	unsigned int max_weight = 0, temp_weight;
+	unsigned long max_weight = 0, temp_weight;
 	list_node_t * node, * max_node = NULL;
     if(ready_queue.prev == &ready_queue){
-    	return ;
+    	return NULL;
     }
     //find the proc with largest weight
 	for(node = ready_queue.prev; node != &ready_queue; node = node->prev){
@@ -54,12 +55,13 @@ void do_scheduler(void)
 {
     // TO DO schedule
     // Modify the current_running pointer.
+    assert_supervisor_mode();
     pcb_t *last_run = current_running;
     //modified to use priorities
-    current_running->sched_time = get_ticks();
     if(ready_queue.prev == &ready_queue){
     	return ;
     }
+    current_running->sched_time = get_ticks();
     //enqueue to head.next, dequeue from head.prev
     //list_node_t *last_list = ready_queue.prev;
     //modified to use priorities

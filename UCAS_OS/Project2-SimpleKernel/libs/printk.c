@@ -45,6 +45,7 @@
 #include <stdarg.h>
 #include <os/sched.h>
 #include <os/irq.h>
+#include <assert.h>
 
 static unsigned int mini_strlen(const char *s)
 {
@@ -249,6 +250,8 @@ int printk(const char *fmt, ...)
 {
     int ret = 0;
     va_list va;
+    
+    assert_supervisor_mode();
 
     va_start(va, fmt);
     ret = vprintk(fmt, va);

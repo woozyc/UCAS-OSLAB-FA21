@@ -53,6 +53,11 @@ void sys_priority(task_priority_t priority)
 {
     invoke_syscall(SYSCALL_PRIORITY, priority, IGNORE, IGNORE);
 }
+
+uint32_t sys_get_wall_time(uint32_t *time_elapsed)
+{
+	return invoke_syscall(SYSCALL_GETWALLTIME, time_elapsed, IGNORE, IGNORE);
+}
 /* do not use in project2
 int sys_fork()
 {

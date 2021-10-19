@@ -10,6 +10,10 @@ static inline void _panic(const char* file_name,int lineno, const char* func_nam
     for(;;);
 }
 
+static inline void assert_supervisor_mode(){
+	__asm__ __volatile__("csrr x0, sscratch\n");
+}
+
 #define assert(cond)                                 \
     {                                                \
         if (!(cond)) {                               \

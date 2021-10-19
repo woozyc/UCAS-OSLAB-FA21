@@ -193,6 +193,8 @@ static void init_syscall(void)
     syscall[SYSCALL_PRIORITY] = (long int (*)())&do_priority;
     syscall[SYSCALL_FORK] = (long int (*)())&do_fork;
     
+    syscall[SYSCALL_GETWALLTIME] = (long int (*)())&do_getwalltime;
+    
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }

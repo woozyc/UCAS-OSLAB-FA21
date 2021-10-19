@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <test2.h>
 #include <sys/syscall.h>
+#include <assert.h>
 
 static char blank[] = {"                                                "};
 
@@ -9,6 +10,7 @@ void sleep_task(void)
     int i;
     int print_location = 1;
     int sleep_time = 5;
+	//assert_supervisor_mode();
 
     while (1)
     {

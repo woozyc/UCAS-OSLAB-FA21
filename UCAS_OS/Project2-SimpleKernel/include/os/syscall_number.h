@@ -49,5 +49,6 @@
 
 #define SYSCALL_GET_TIMEBASE 30
 #define SYSCALL_GET_TICK 31
+#define SYSCALL_GETWALLTIME 32
 
 #endif

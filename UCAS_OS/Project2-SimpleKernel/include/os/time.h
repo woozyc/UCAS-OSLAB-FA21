@@ -37,6 +37,7 @@ extern uint64_t MHZ;
 
 uint64_t get_timer(void);
 uint64_t get_ticks(void);
+uint32_t do_getwalltime(uint32_t *time_elapsed);
 
 extern uint64_t get_time_base();
 

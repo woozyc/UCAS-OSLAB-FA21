@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/syscall.h>
+#include <assert.h>
 
 static char blank[] = {"                    "};
 static char plane1[] = {"    ___         _   "};
@@ -11,6 +12,7 @@ void print_task1(void)
 {
     int i;
     int print_location = 5;
+	//assert_supervisor_mode();
 
     for (i = 0;; i++)
     {
@@ -24,6 +26,7 @@ void print_task2(void)
 {
     int i;
     int print_location = 6;
+	//assert_supervisor_mode();
 
     for (i = 0;; i++)
     {
@@ -36,6 +39,7 @@ void print_task2(void)
 void drawing_task(void)
 {
     int i, j = 22;
+	//assert_supervisor_mode();
 
     while (1)
     {
