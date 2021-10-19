@@ -4,7 +4,7 @@
 此操作系统可运行在基于RISC-V指令集的NutShell（果壳）处理器上。
 
 此实验分为三个等级，S-Core, A-Core, C-Core，难度依次递增，高等级必须同时完成低等级的内容。\
-为完成此课程，必须至少实现S-Core的全部功能。
+为完成此课程，必须至少实现S-Core的全部功能。(以下项目说明中，若无特殊标注，则均为S-Core要求内容)
 ## 各项目说明
 ### Project0-Preration
 熟悉实验环境，熟悉Makefile，qemu，gdb，git等工具的使用方法，熟悉RISC-V汇编语言。
@@ -30,7 +30,7 @@
  + Task3: 例外处理
  	- A-Core: 实现系统调用
  + Task4: 时钟中断与抢占式调度
- 	- 此部分S-Core不作要求
+ 	- S-Core不作要求
  + Task5: sys_fork与优先级调度
  	- 仅C-Core需要完成
  <br>_To be continued..._
