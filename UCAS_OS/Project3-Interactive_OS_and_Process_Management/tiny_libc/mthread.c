@@ -12,7 +12,7 @@ int mthread_mutex_init(mthread_mutex_t* handle)
     //modified to hide lock instance for user
     mthread_mutex_t *id = handle;
     *id = invoke_syscall(SYSCALL_MUTEX_INIT, (long)handle, IGNORE, IGNORE);
-    return 1;
+    return *id;
 }
 int mthread_mutex_lock(mthread_mutex_t* handle) 
 {
@@ -43,37 +43,46 @@ int mthread_mutex_trylock(int *handle)
 
 int mthread_barrier_init(int* handle, unsigned count)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_barrier_t *id = handle;
+    *id = invoke_syscall(SYSCALL_BARRIER_INIT, (long)handle, (long)count, IGNORE);
+    return *id;
 }
 int mthread_barrier_wait(int* handle)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_barrier_t id = *handle;
+    return invoke_syscall(SYSCALL_BARRIER_WAIT, (long)id, IGNORE, IGNORE);
 }
 int mthread_barrier_destroy(int* handle)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_barrier_t id = *handle;
+    return invoke_syscall(SYSCALL_BARRIER_DESTORY, (long)id, IGNORE, IGNORE);
 }
 
 int mthread_semaphore_init(int* handle, int val)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_semaphore_t *id = handle;
+    *id = invoke_syscall(SYSCALL_SMP_INIT, (long)handle, (long)val, IGNORE);
+    return *id;
 }
 int mthread_semaphore_up(int* handle)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_semaphore_t id = *handle;
+    return invoke_syscall(SYSCALL_SMP_UP, (long)id, IGNORE, IGNORE);
 }
 int mthread_semaphore_down(int* handle)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_semaphore_t id = *handle;
+    return invoke_syscall(SYSCALL_SMP_DOWN, (long)id, IGNORE, IGNORE);
 }
 int mthread_semaphore_destroy(int* handle)
 {
-    // TODO:
-    ;
+    // TO DO:
+    mthread_semaphore_t id = *handle;
+    return invoke_syscall(SYSCALL_SMP_DESTORY, (long)id, IGNORE, IGNORE);
 }

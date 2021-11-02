@@ -5,6 +5,7 @@
 #include <mthread.h>
 #include <test3.h>
 
+#define PRINT_START 7
 #define NUM_TB 3
 
 static mthread_barrier_t barrier;
@@ -19,7 +20,7 @@ void test_barrier(void)
                                    USER_PROCESS};
     pid_t pids[NUM_TB];
     for (int i = 0; i < NUM_TB; ++i) {
-        pids[i] = sys_spawn(&child_task, (void*)(i + 1),
+        pids[i] = sys_spawn(&child_task, (void*)(i + PRINT_START),
                             ENTER_ZOMBIE_ON_EXIT);
     }
 

@@ -35,6 +35,7 @@
 #include <os/syscall.h>
 #include <os/list.h>
 #include <os/lock.h>
+#include <os/smp.h>
 #include <test.h>
 
 #include <csr.h>
@@ -158,6 +159,15 @@ static void init_syscall(void)
     syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&mutex_unlock;
     syscall[SYSCALL_MUTEX_DESTORY] = (long int (*)())&mutex_destory;
     syscall[SYSCALL_MUTEX_TRYLOCK] = (long int (*)())&mutex_trylock;
+    //semaphore
+    syscall[SYSCALL_SMP_INIT] = (long int (*)())&smp_get;
+    syscall[SYSCALL_SMP_DOWN] = (long int (*)())&smp_down;
+    syscall[SYSCALL_SMP_UP] = (long int (*)())&smp_up;
+    syscall[SYSCALL_SMP_DESTORY] = (long int (*)())&smp_destory;
+    //barrier
+    syscall[SYSCALL_BARRIER_INIT] = (long int (*)())&barrier_get;
+    syscall[SYSCALL_BARRIER_WAIT] = (long int (*)())&barrier_wait;
+    syscall[SYSCALL_BARRIER_DESTORY] = (long int (*)())&barrier_destory;
     
     syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
     syscall[SYSCALL_READ] = (long int (*)())&sbi_console_getchar;

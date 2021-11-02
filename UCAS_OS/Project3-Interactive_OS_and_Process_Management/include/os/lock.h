@@ -30,7 +30,7 @@
 
 #include <os/list.h>
 
-#define MAX_MUTEX_LOCK 64
+#define MAX_MUTEX_LOCK 32
 
 typedef enum {
     UNLOCKED,
@@ -53,12 +53,6 @@ typedef struct{
 	int key;
 	mutex_lock_t lock_instance;
 } mutex_array_cell;
-
-/* init lock */
-void spin_lock_init(spin_lock_t *lock);
-int spin_lock_try_acquire(spin_lock_t *lock);
-void spin_lock_acquire(spin_lock_t *lock);
-void spin_lock_release(spin_lock_t *lock);
 
 int mutex_get(int key);
 int mutex_lock(int handle);

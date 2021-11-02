@@ -269,7 +269,7 @@ int do_kill(pid_t pid){
 
 void do_exit(void){
 	//TO DO:
-	if(current_running->mode == ENTER_ZOMBIE_ON_EXIT){
+	if(current_running->status != TASK_EXITED && current_running->mode == ENTER_ZOMBIE_ON_EXIT){
 		current_running->status = TASK_ZOMBIE;
 	}else{
 		current_running->status = TASK_EXITED;

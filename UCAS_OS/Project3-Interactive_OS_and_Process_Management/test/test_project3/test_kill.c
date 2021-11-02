@@ -16,7 +16,7 @@ void ready_to_exit_task()
     mthread_mutex_lock(&lock1);
     mthread_mutex_lock(&lock2);
 
-    for (i = 0; i < 100000; i++)
+    for (i = 0; i < 200000; i++)
     {
         sys_move_cursor(1, print_location);
         printf("> [TASK] I am task with pid %d, I have acquired two mutex lock. (%d)", sys_getpid(), i++);
