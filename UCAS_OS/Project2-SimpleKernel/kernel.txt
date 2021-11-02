@@ -207,27 +207,28 @@ Disassembly of section .text:
     502001fc:	00823403          	ld	s0,8(tp) # 8 <_start-0x501ffff8>
     50200200:	e822                	sd	s0,16(sp)
     50200202:	140024f3          	csrr	s1,sscratch
-    50200206:	02923023          	sd	s1,32(tp) # 20 <_start-0x501fffe0>
-    5020020a:	000462b7          	lui	t0,0x46
-    5020020e:	1002b973          	csrrc	s2,sstatus,t0
-    50200212:	e24a                	sd	s2,256(sp)
-    50200214:	141029f3          	csrr	s3,sepc
-    50200218:	e64e                	sd	s3,264(sp)
-    5020021a:	14302a73          	csrr	s4,stval
-    5020021e:	ea52                	sd	s4,272(sp)
-    50200220:	14202af3          	csrr	s5,scause
-    50200224:	ee56                	sd	s5,280(sp)
-    50200226:	7159                	addi	sp,sp,-112
-    50200228:	14001073          	csrw	sscratch,zero
-    5020022c:	00005197          	auipc	gp,0x5
-    50200230:	1cc18193          	addi	gp,gp,460 # 502053f8 <__global_pointer$>
-    50200234:	00000097          	auipc	ra,0x0
-    50200238:	f1c08093          	addi	ra,ra,-228 # 50200150 <ret_from_exception>
-    5020023c:	00023503          	ld	a0,0(tp) # 0 <_start-0x50200000>
-    50200240:	07050513          	addi	a0,a0,112
-    50200244:	143025f3          	csrr	a1,stval
-    50200248:	14202673          	csrr	a2,scause
-    5020024c:	09d0006f          	j	50200ae8 <interrupt_helper>
+    50200206:	f026                	sd	s1,32(sp)
+    50200208:	000462b7          	lui	t0,0x46
+    5020020c:	1002b973          	csrrc	s2,sstatus,t0
+    50200210:	e24a                	sd	s2,256(sp)
+    50200212:	141029f3          	csrr	s3,sepc
+    50200216:	e64e                	sd	s3,264(sp)
+    50200218:	14302a73          	csrr	s4,stval
+    5020021c:	ea52                	sd	s4,272(sp)
+    5020021e:	14202af3          	csrr	s5,scause
+    50200222:	ee56                	sd	s5,280(sp)
+    50200224:	7159                	addi	sp,sp,-112
+    50200226:	14001073          	csrw	sscratch,zero
+    5020022a:	00005197          	auipc	gp,0x5
+    5020022e:	1ce18193          	addi	gp,gp,462 # 502053f8 <__global_pointer$>
+    50200232:	00000097          	auipc	ra,0x0
+    50200236:	f1e08093          	addi	ra,ra,-226 # 50200150 <ret_from_exception>
+    5020023a:	00023503          	ld	a0,0(tp) # 0 <_start-0x50200000>
+    5020023e:	07050513          	addi	a0,a0,112
+    50200242:	143025f3          	csrr	a1,stval
+    50200246:	14202673          	csrr	a2,scause
+    5020024a:	09f0006f          	j	50200ae8 <interrupt_helper>
+	...
 
 0000000050200250 <sbi_console_putstr>:
     50200250:	1101                	addi	sp,sp,-32

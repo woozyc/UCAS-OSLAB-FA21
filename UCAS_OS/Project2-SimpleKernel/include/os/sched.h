@@ -120,6 +120,10 @@ typedef struct pcb
     /* last run time */
     unsigned int sched_time;
     
+    //wait_queue;
+    //exit_mode;
+    //lock_holding;
+    
 } pcb_t;
 
 /* task information, used to init PCB */

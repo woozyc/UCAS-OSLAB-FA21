@@ -1,4 +1,4 @@
-IMAGE_PATH=/home/stu/OSLab-RISC-V/oslab/UCAS_OS/Project2-SimpleKernel/image
+IMAGE_PATH=/home/stu/OSLab-RISC-V/oslab/UCAS_OS/Project3-Interactive_OS_and_Process_Management/image
 
 if [ "$1" == "ci" ];
 then
