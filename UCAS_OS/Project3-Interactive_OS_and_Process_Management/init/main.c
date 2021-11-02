@@ -152,10 +152,10 @@ static void init_syscall(void)
     syscall[SYSCALL_PS] = (long int (*)())&do_ps;
     syscall[SYSCALL_GETPID] = (long int (*)())&do_getpid;
     syscall[SYSCALL_YIELD] = (long int (*)())&do_scheduler;
-    syscall[SYSCALL_MUTEX_INIT] = (long int (*)())&do_mutex_lock_init;
+    syscall[SYSCALL_MUTEX_INIT] = (long int (*)())&mutex_get;
     //lock
-    syscall[SYSCALL_MUTEX_ACQUIRE] = (long int (*)())&do_mutex_lock_acquire;
-    syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&do_mutex_lock_release;
+    syscall[SYSCALL_MUTEX_ACQUIRE] = (long int (*)())&mutex_lock;
+    syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&mutex_unlock;
     
     syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
     syscall[SYSCALL_READ] = (long int (*)())&sbi_console_getchar;

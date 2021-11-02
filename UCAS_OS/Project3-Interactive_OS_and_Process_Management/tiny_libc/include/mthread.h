@@ -30,24 +30,16 @@
 #include <stdint.h>
 #include <stdatomic.h>
 #include <os/list.h>
-#include <os/lock.h>
-
-#define MAX_MUTEX_LOCK 64
-
-typedef struct{
-	int key;
-	mutex_lock_t lock_instance;
-} mutex_array_cell;
 
 typedef int mthread_mutex_t;
 
-int mthread_mutex_init(mthread_mutex_t* handle);
-int mthread_mutex_lock(mthread_mutex_t* handle);
-int mthread_mutex_unlock(mthread_mutex_t* handle);
+int mthread_mutex_init(int* handle);
+int mthread_mutex_lock(int* handle);
+int mthread_mutex_unlock(int* handle);
+int mthread_mutex_destroy(int *handle);
+int mthread_mutex_trylock(int *handle);
 
 //int mthread_mutex_init(void *handle);
-int mthread_mutex_destroy(void *handle);
-int mthread_mutex_trylock(void *handle);
 //int mthread_mutex_lock(void *handle);
 //int mthread_mutex_unlock(void *handle);
 
@@ -56,18 +48,18 @@ typedef struct mthread_barrier
     // TODO:
 } mthread_barrier_t;
 
-int mthread_barrier_init(void *handle, unsigned count);
-int mthread_barrier_wait(void *handle);
-int mthread_barrier_destroy(void *handle);
+int mthread_barrier_init(int *handle, unsigned count);
+int mthread_barrier_wait(int *handle);
+int mthread_barrier_destroy(int *handle);
 
 typedef struct mthread_semaphore
 {
     // TODO:
 } mthread_semaphore_t;
 
-int mthread_semaphore_init(void *handle, int val);
-int mthread_semaphore_up(void *handle);
-int mthread_semaphore_down(void *handle);
-int mthread_semaphore_destroy(void *handle);
+int mthread_semaphore_init(int *handle, int val);
+int mthread_semaphore_up(int *handle);
+int mthread_semaphore_down(int *handle);
+int mthread_semaphore_destroy(int *handle);
 
 #endif
