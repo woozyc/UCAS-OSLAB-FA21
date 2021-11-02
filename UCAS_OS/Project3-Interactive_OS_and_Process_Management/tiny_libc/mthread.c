@@ -11,7 +11,7 @@ int mthread_mutex_init(mthread_mutex_t* handle)
     //invoke_syscall(SYSCALL_MUTEX_INIT, handle, IGNORE, IGNORE);
     //modified to hide lock instance for user
     mthread_mutex_t *id = handle;
-    *id = invoke_syscall(SYSCALL_MUTEX_INIT, (long)handle, IGNORE, IGNORE);;
+    *id = invoke_syscall(SYSCALL_MUTEX_INIT, (long)handle, IGNORE, IGNORE);
     return 1;
 }
 int mthread_mutex_lock(mthread_mutex_t* handle) 
@@ -20,7 +20,7 @@ int mthread_mutex_lock(mthread_mutex_t* handle)
     //do_mutex_lock_acquire(handle);
     //invoke_syscall(SYSCALL_MUTEX_ACQUIRE, handle, IGNORE, IGNORE);
     mthread_mutex_t id = *handle;
-    return invoke_syscall(SYSCALL_MUTEX_ACQUIRE, (long)id, IGNORE, IGNORE);;
+    return invoke_syscall(SYSCALL_MUTEX_ACQUIRE, (long)id, IGNORE, IGNORE);
 }
 int mthread_mutex_unlock(mthread_mutex_t* handle)
 {
@@ -28,7 +28,17 @@ int mthread_mutex_unlock(mthread_mutex_t* handle)
     //do_mutex_lock_release(handle);
     //invoke_syscall(SYSCALL_MUTEX_RELEASE, handle, IGNORE, IGNORE);
     mthread_mutex_t id = *handle;
-    return invoke_syscall(SYSCALL_MUTEX_RELEASE, (long)id, IGNORE, IGNORE);;
+    return invoke_syscall(SYSCALL_MUTEX_RELEASE, (long)id, IGNORE, IGNORE);
+}
+int mthread_mutex_destroy(int *handle)
+{
+	mthread_mutex_t id = *handle;
+	return invoke_syscall(SYSCALL_MUTEX_DESTORY, (long)id, IGNORE, IGNORE);
+}
+int mthread_mutex_trylock(int *handle)
+{
+	mthread_mutex_t id = *handle;
+	return invoke_syscall(SYSCALL_MUTEX_TRYLOCK, (long)id, IGNORE, IGNORE);
 }
 
 int mthread_barrier_init(int* handle, unsigned count)

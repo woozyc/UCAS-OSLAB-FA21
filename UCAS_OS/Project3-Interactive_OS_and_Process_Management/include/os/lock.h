@@ -63,9 +63,12 @@ void spin_lock_release(spin_lock_t *lock);
 int mutex_get(int key);
 int mutex_lock(int handle);
 int mutex_unlock(int handle);
+int mutex_destory(int handle);
+int mutex_trylock(int handle);
 
 void do_mutex_lock_init(mutex_lock_t *lock);
 void do_mutex_lock_acquire(mutex_lock_t *lock);
 void do_mutex_lock_release(mutex_lock_t *lock);
+int try_mutex_lock_acquire(mutex_lock_t *lock);
 
 #endif

@@ -43,19 +43,13 @@ int mthread_mutex_trylock(int *handle);
 //int mthread_mutex_lock(void *handle);
 //int mthread_mutex_unlock(void *handle);
 
-typedef struct mthread_barrier
-{
-    // TODO:
-} mthread_barrier_t;
+typedef int mthread_barrier_t;
 
 int mthread_barrier_init(int *handle, unsigned count);
 int mthread_barrier_wait(int *handle);
 int mthread_barrier_destroy(int *handle);
 
-typedef struct mthread_semaphore
-{
-    // TODO:
-} mthread_semaphore_t;
+typedef int mthread_semaphore_t;
 
 int mthread_semaphore_init(int *handle, int val);
 int mthread_semaphore_up(int *handle);

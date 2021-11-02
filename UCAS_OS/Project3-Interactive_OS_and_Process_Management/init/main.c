@@ -156,6 +156,8 @@ static void init_syscall(void)
     //lock
     syscall[SYSCALL_MUTEX_ACQUIRE] = (long int (*)())&mutex_lock;
     syscall[SYSCALL_MUTEX_RELEASE] = (long int (*)())&mutex_unlock;
+    syscall[SYSCALL_MUTEX_DESTORY] = (long int (*)())&mutex_destory;
+    syscall[SYSCALL_MUTEX_TRYLOCK] = (long int (*)())&mutex_trylock;
     
     syscall[SYSCALL_WRITE] = (long int (*)())&screen_write;
     syscall[SYSCALL_READ] = (long int (*)())&sbi_console_getchar;
