@@ -289,7 +289,7 @@ int prints(const char *fmt, ...)
     while(current_running->cursor_y > SCREEN_HEIGHT){
     	screen_scroll();
         current_running->cursor_y--;
-        screen_reflush;
+        screen_reflush();
     }
     va_start(va, fmt);
     ret = vprints(fmt, va);

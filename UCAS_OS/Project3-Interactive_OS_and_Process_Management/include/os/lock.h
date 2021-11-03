@@ -30,7 +30,7 @@
 
 #include <os/list.h>
 
-#define MAX_MUTEX_LOCK 32
+#define MAX_MUTEX_LOCK 16
 
 typedef enum {
     UNLOCKED,

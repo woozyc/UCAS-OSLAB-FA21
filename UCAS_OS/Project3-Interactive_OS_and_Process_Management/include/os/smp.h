@@ -10,7 +10,7 @@ extern void unlock_kernel();
 
 #include <os/list.h>
 
-#define MAX_SMP 32
+#define MAX_SMP 16
 
 typedef struct semaphore
 {
@@ -29,10 +29,10 @@ int smp_up(int handle);
 int smp_destory(int handle);
 
 void do_smp_init(smp_t *smp, int value);
-void do_smp_down(smp_t *smp);
-void do_smp_up(smp_t *smp);
+int do_smp_down(smp_t *smp);
+int do_smp_up(smp_t *smp);
 
-#define MAX_BARRIER 32
+#define MAX_BARRIER 16
 
 typedef struct barrier
 {

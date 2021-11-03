@@ -36,8 +36,10 @@
 #include <os/list.h>
 #include <os/lock.h>
 #include <os/smp.h>
+#include <os/mbox.h>
 #include <test.h>
 
+#include <sys/syscall.h>
 #include <csr.h>
 
 extern void ret_from_exception();
@@ -61,6 +63,7 @@ void init_pcb_stack(
     for(i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
+    pt_regs->regs[1] = (reg_t)&sys_exit;
     pt_regs->regs[2] = (reg_t)user_stack;
     pt_regs->regs[3] = (reg_t)__global_pointer$;
     pt_regs->regs[4] = (reg_t)pcb;
@@ -185,6 +188,10 @@ static void init_syscall(void)
     syscall[SYSCALL_GET_CHAR] = (long int (*)())&screen_getchar;
     syscall[SYSCALL_GETWALLTIME] = (long int (*)())&do_getwalltime;
     
+    syscall[SYSCALL_MAILBOX_OPEN] = (long int (*)())&kernel_mbox_open;
+    syscall[SYSCALL_MAILBOX_CLOSE] = (long int (*)())&kernel_mbox_close;
+    syscall[SYSCALL_MAILBOX_SEND] = (long int (*)())&kernel_mbox_send;
+    syscall[SYSCALL_MAILBOX_RECV] = (long int (*)())&kernel_mbox_recv;
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }

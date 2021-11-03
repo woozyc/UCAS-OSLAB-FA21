@@ -68,7 +68,6 @@ char *strcat(char *dest, const char *src)
 
 int itoa(char *s){
 	int value = 0;
-	char *ptr = s;
 	if(*s == '-' || *s == '+')
 		s++;
 	while(s){

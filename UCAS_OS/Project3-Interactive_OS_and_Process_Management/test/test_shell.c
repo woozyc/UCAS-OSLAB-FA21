@@ -39,12 +39,9 @@ struct task_info task_test_shell = {
     (uintptr_t)&test_shell, USER_PROCESS, P_4};
 
 
-struct task_info task_test_waitpid = {
-    (uintptr_t)&wait_exit_task, USER_PROCESS, P_4};
-struct task_info task_test_semaphore = {
-    (uintptr_t)&semaphore_add_task1, USER_PROCESS, P_4};
-struct task_info task_test_barrier = {
-    (uintptr_t)&test_barrier, USER_PROCESS, P_4};
+struct task_info task_test_waitpid = {(uintptr_t)&wait_exit_task, USER_PROCESS, P_4};
+struct task_info task_test_semaphore = {(uintptr_t)&semaphore_add_task1, USER_PROCESS, P_4};
+struct task_info task_test_barrier = {(uintptr_t)&test_barrier, USER_PROCESS, P_4};
     
 struct task_info strserver_task = {(uintptr_t)&strServer, USER_PROCESS, P_4};
 struct task_info strgenerator_task = {(uintptr_t)&strGenerator, USER_PROCESS, P_4};
@@ -93,7 +90,7 @@ static void shell_help(){
 }
 
 static void shell_exec(int id){
-	if(id < 0 || id > 6){
+	if(id < 0 || id >= num_test_tasks){
 		printf("  No such task to execute\n");
 		return ;
 	}
@@ -115,17 +112,25 @@ static void shell_kill(int pid){
 static int resolve_command(int len){
 	int j;
 	char *cmd, *args;
-	for(j = 0; j < len && input_buffer[j] == ' '; j++);//find first none empty char
+	for(j = 0; j < len - 1 && input_buffer[j] == ' '; j++);//find first none empty char
 	cmd = input_buffer + j;
 	if(strlen(cmd) == 0)
 		return -1;
-	for( ; j < len; j++){
+	for( ; j < len - 1; j++){
 		if(input_buffer[j] == ' '){//split command
 			input_buffer[j] = 0;
+			j++;
 			break;
 		}
 	}
-	args = input_buffer + j + 1;
+	args = input_buffer + j++;
+	for( ; j < len - 1; j++){
+		if(input_buffer[j] == ' '){//split command
+			input_buffer[j] = 0;
+			j++;
+			break;
+		}
+	}
 	if(!strcmp(cmd, "ps")){
 		shell_ps();
 		return 1;
@@ -136,30 +141,41 @@ static int resolve_command(int len){
 		shell_help();
 		return 3;
 	}else if(!strcmp(cmd, "exec")){
-		for( ; j < len; j++){
-			if(input_buffer[j] == ' '){//split command
-				input_buffer[j] = 0;
-				break;
-			}
-		}
-		if(!*args){
-			printf("  Usage: exec [pid]\n");
+		if(*args < '0' || *args > '9'){
+			//printf("%c\n", *args);
+			printf("  Usage: exec [task_id]\n");
+			printf("    0: waitpid   1: semaphore    2: barrier 3: multicore\n");
+			printf("    4: strserver 5: strgenerator 6: affinity\n");
 			return -1;
 		}
-		shell_exec(itoa(args));
+		while(*args >= '0' && *args <= '9' && j <= len){
+			shell_exec(itoa(args));
+			args = input_buffer + j++;
+			for( ; j < len; j++){
+				if(input_buffer[j] == ' '){//split command
+					input_buffer[j] = 0;
+					j++;
+					break;
+				}
+			}
+		}
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
-		for( ; j < len; j++){
-			if(input_buffer[j] == ' '){//split command
-				input_buffer[j] = 0;
-				break;
-			}
-		}
-		if(!*args){
-			printf("  Usage: kill [pid]\n");
+		if(*args < '0' || *args > '9'){
+			printf("  Usage: kill [pid], try \"ps\" to get pid.\n");
 			return -1;
 		}
-		shell_kill(itoa(args));
+		while(*args >= '0' && *args <= '9' && j <= len){
+			shell_kill(itoa(args));
+			args = input_buffer + j++;
+			for( ; j < len - 1; j++){
+				if(input_buffer[j] == ' '){//split command
+					input_buffer[j] = 0;
+					j++;
+					break;
+				}
+			}
+		}
 		return 5;
 	}else{
 		printf("  Unknown command, try \"help\"\n");

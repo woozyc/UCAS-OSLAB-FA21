@@ -3,6 +3,7 @@
 #include <os/sched.h>
 #include <os/smp.h>
 #include <os/lock.h>
+#include <os/stdio.h>
 
 //only visible to kernel
 smp_array_cell smp_array[MAX_SMP];
@@ -14,20 +15,28 @@ void do_smp_init(smp_t *smp, int value)
     init_list_head(&smp->block_queue);
 }
 
-void do_smp_down(smp_t *smp)
+int do_smp_down(smp_t *smp)
 {
     /* TO DO */
-	while(smp->value == 0)
+    int i = 0;
+	while(smp->value == 0){
+    	i++;
     	do_block(&(current_running->list), &smp->block_queue);
+    }
     smp->value--;
+    return i;
 }
 
-void do_smp_up(smp_t *smp)
+int do_smp_up(smp_t *smp)
 {
     /* TO DO */
-    if(smp->block_queue.prev != &smp->block_queue)
+    int i = 0;
+    if(smp->block_queue.prev != &smp->block_queue){
+    	i++;
         do_unblock(smp->block_queue.prev);
+    }
     smp->value++;
+    return i;
 }
 
 //syscalls for user

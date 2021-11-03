@@ -53,7 +53,7 @@ void wait_exit_task()
 
     pid_t pid_task1 = sys_spawn(&task1, NULL, ENTER_ZOMBIE_ON_EXIT);
     sys_sleep(1); // wait enough time for task1 to spawn
-    pid_t pid_task2 = sys_spawn(&task2, (void*)(long)pid_task1,
+    sys_spawn(&task2, (void*)(long)pid_task1,
                                 AUTO_CLEANUP_ON_EXIT);
 
     int print_location = 3;

@@ -1,9 +1,11 @@
 #ifndef INCLUDE_MAIL_BOX_
 #define INCLUDE_MAIL_BOX_
 
-#define MAX_MBOX_LENGTH (64)
+#ifndef MAX_MBOX_LENGTH
+#define MAX_MBOX_LENGTH 64
+#endif
 
-// TODO: please define mailbox_t;
+// TO DO: please define mailbox_t;
 // mailbox_t is just an id of kernel's mail box.
 typedef int mailbox_t;
 

@@ -1,5 +1,6 @@
 #include <os/lock.h>
 #include <os/sched.h>
+#include <os/stdio.h>
 #include <atomic.h>
 #include <assert.h>
 

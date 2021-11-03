@@ -48,3 +48,8 @@ void timer_check(){
 		}
 	}
 }
+
+uint32_t do_getwalltime(uint32_t *time_elapsed){
+	*time_elapsed = get_ticks();
+	return time_base;
+}

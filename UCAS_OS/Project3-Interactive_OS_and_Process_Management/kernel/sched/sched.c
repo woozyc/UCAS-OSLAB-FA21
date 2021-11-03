@@ -5,8 +5,9 @@
 #include <os/time.h>
 #include <os/irq.h>
 #include <os/string.h>
+#include <os/stdio.h>
 #include <screen.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <assert.h>
 
 extern void ret_from_exception();
@@ -31,7 +32,7 @@ pid_t process_id = 1;
 //priority scheduler
 unsigned long cal_pcb_weight(pcb_t *pcb){
 	//weight was designed carefully
-	return (pcb->priority * time_base) / 128 + get_ticks() - pcb->sched_time;
+	return (pcb->priority * time_base) / 64 + get_ticks() - pcb->sched_time;
 }
 
 list_node_t *find_next_proc(){
@@ -194,22 +195,22 @@ int do_fork(){
 }
 
 void do_ps(void){
-	prints("[PROCESS TABLE]\n");
+	printk("[PROCESS TABLE]\n");
 	int i, j;
 	for(i = 0, j = 0; i < NUM_MAX_TASK; i++){
 		if(pcb[i].status != TASK_EXITED){
-			prints("[%d] PID : %d  STATUS : ", j, pcb[i].pid);
+			printk("[%d] PID : %d  STATUS : ", j, pcb[i].pid);
 			switch(pcb[i].status){
 				case TASK_BLOCKED:
-					prints("BLOCKED\n"); break;
+					printk("BLOCKED\n"); break;
 				case TASK_RUNNING:
-					prints("RUNNING\n"); break;
+					printk("RUNNING\n"); break;
 				case TASK_READY:
-					prints("READY\n"); break;
+					printk("READY\n"); break;
 				case TASK_ZOMBIE:
-					prints("ZOMBIE\n"); break;
+					printk("ZOMBIE\n"); break;
 				default:
-					prints("UNKNOWN\n");
+					printk("UNKNOWN\n");
 			}
 			j++;
 		}
@@ -241,7 +242,7 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode){
      		return pcb[i].pid;
 		}
 	}
-	prints("> [SPAWN] Pcb allocation error\n");
+	printk("> [SPAWN] Pcb allocation error\n");
 	return -1;
 }
 
@@ -249,11 +250,11 @@ int do_kill(pid_t pid){
 	//TO DO:
 	int i = pid - 1;
 	if(i < 0 || i >= NUM_MAX_TASK || pcb[i].status == TASK_EXITED){
-		prints("> [KILL] Can not kill a process that doesn't exist\n");
+		printk("> [KILL] Can not kill a process that doesn't exist\n");
 		return 0;
 	}
 	if(i == 0){
-		prints("> [KILL] Can not kill shell\n");
+		printk("> [KILL] Can not kill shell\n");
 		return 0;
 	}
 	pcb[i].status = TASK_EXITED;
@@ -286,11 +287,11 @@ int do_waitpid(pid_t pid){
 	//TO DO:
 	int i = pid - 1;
 	if(i < 0 || i >= NUM_MAX_TASK || pcb[i].status == TASK_ZOMBIE || pcb[i].status == TASK_EXITED){
-		prints("> [WAIT] Can not wait for a process that doesn't exist or has exited\n");
+		printk("> [WAIT] Can not wait for a process that doesn't exist or has exited\n");
 		return 0;
 	}
 	if(i == 0){
-		prints("> [WAIT] Can not wait for shell\n");
+		printk("> [WAIT] Can not wait for shell\n");
 		return 0;
 	}
 	do_block(&(current_running->list), &(pcb[i].wait_list));
