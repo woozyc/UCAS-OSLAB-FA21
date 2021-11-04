@@ -1,6 +1,7 @@
 #include <os/lock.h>
 #include <os/sched.h>
 #include <os/stdio.h>
+#include <os/smp.h>
 #include <atomic.h>
 #include <assert.h>
 
@@ -17,11 +18,12 @@ void do_mutex_lock_init(mutex_lock_t *lock)
 
 void do_mutex_lock_acquire(mutex_lock_t *lock)
 {
+    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     /* TO DO */
     while(lock->lock.status == LOCKED)
-        do_block(&(current_running->list), &lock->block_queue);
+        do_block(&((*current_running)->list), &lock->block_queue);
     lock->lock.status = LOCKED;
-    list_add(&(lock->owner_list), &(current_running->lock_list));
+    list_add(&(lock->owner_list), &((*current_running)->lock_list));
 }
 
 void do_mutex_lock_release(mutex_lock_t *lock)
@@ -37,11 +39,12 @@ void do_mutex_lock_release(mutex_lock_t *lock)
 
 int try_mutex_lock_acquire(mutex_lock_t *lock)
 {
+    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     /* TO DO */
     if(lock->lock.status == LOCKED)
         return 0;
     lock->lock.status = LOCKED;
-    list_add(&(lock->owner_list), &(current_running->lock_list));
+    list_add(&(lock->owner_list), &((*current_running)->lock_list));
     return 1;
 }
 

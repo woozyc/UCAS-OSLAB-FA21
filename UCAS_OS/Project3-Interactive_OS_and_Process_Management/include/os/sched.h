@@ -147,14 +147,17 @@ typedef struct task_info
 extern list_head ready_queue;
 
 /* current running task PCB */
-extern pcb_t * volatile current_running;
+extern pcb_t ** current_running;
+extern pcb_t * volatile current_running_0;
+extern pcb_t * volatile current_running_1;
 // extern pcb_t * volatile current_running[NR_CPUS];
-extern pid_t process_id;
 
 extern pcb_t pcb[NUM_MAX_TASK];
 // extern pcb_t kernel_pcb[NR_CPUS];
-extern pcb_t pid0_pcb;
-extern const ptr_t pid0_stack;
+extern pcb_t pid0_pcb_0;
+extern const ptr_t pid0_stack_0;
+extern pcb_t pid0_pcb_1;
+extern const ptr_t pid0_stack_1;
 
 void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,

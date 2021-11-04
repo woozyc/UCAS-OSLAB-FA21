@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <sbi.h>
 #include <screen.h>
+#include <os/smp.h>
 
 handler_t irq_table[IRQC_COUNT];
 handler_t exc_table[EXCC_COUNT];
@@ -81,7 +82,7 @@ void handle_other(regs_context_t *regs, uint64_t stval, uint64_t cause)
     printk("stval: 0x%lx cause: %lx\n\r",
            stval, cause);
     printk("sepc: 0x%lx\n\r", regs->sepc);
-    // printk("mhartid: 0x%lx\n\r", get_current_cpu_id());
+    printk("mhartid: 0x%lx\n\r", get_current_cpu_id());
 
     uintptr_t fp = regs->regs[8], sp = regs->regs[2];
     printk("[Backtrace]\n\r");

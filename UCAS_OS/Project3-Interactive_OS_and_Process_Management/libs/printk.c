@@ -229,8 +229,9 @@ end:
 }
 
 static int _vprint(const char* fmt, va_list _va,
-                   void (*output)(char*))
+                   void (*output)(char*), int cursor_move)
 {
+    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     va_list va;
     va_copy(va, _va);
 
@@ -243,15 +244,16 @@ static int _vprint(const char* fmt, va_list _va,
 
     disable_preempt();
     output(buff);
-    for (int i = 0; i < ret; ++i) {
-        if (buff[i] == '\n') {
-            current_running->cursor_y++;
-        } else if (buff[i] == '\r') {
-            current_running->cursor_x = 1;
-        } else {
-            current_running->cursor_x++;
-        }
-    }
+    if(cursor_move)
+	    for (int i = 0; i < ret; ++i) {
+    	    if (buff[i] == '\n') {
+    	        (*current_running)->cursor_y++;
+    	    } else if (buff[i] == '\r') {
+    	        (*current_running)->cursor_x = 1;
+    	    } else {
+    	        (*current_running)->cursor_x++;
+    	    }
+    	}
     enable_preempt();
 
     return ret;
@@ -259,7 +261,7 @@ static int _vprint(const char* fmt, va_list _va,
 
 int vprintk(const char *fmt, va_list _va)
 {
-    return _vprint(fmt, _va, port_write);
+    return _vprint(fmt, _va, port_write, 1);
 }
 
 int printk(const char *fmt, ...)
@@ -267,7 +269,7 @@ int printk(const char *fmt, ...)
     int ret = 0;
     va_list va;
     
-    assert_supervisor_mode();
+    //assert_supervisor_mode();
 
     va_start(va, fmt);
     ret = vprintk(fmt, va);
@@ -278,7 +280,7 @@ int printk(const char *fmt, ...)
 
 int vprints(const char *fmt, va_list _va)
 {
-    return _vprint(fmt, _va, screen_write);
+    return _vprint(fmt, _va, screen_write, 0);
 }
 
 int prints(const char *fmt, ...)
@@ -286,11 +288,7 @@ int prints(const char *fmt, ...)
     int ret = 0;
     va_list va;
 
-    while(current_running->cursor_y > SCREEN_HEIGHT){
-    	screen_scroll();
-        current_running->cursor_y--;
-        screen_reflush();
-    }
+    
     va_start(va, fmt);
     ret = vprints(fmt, va);
     va_end(va);

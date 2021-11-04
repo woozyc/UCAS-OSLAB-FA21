@@ -127,7 +127,10 @@ _save_context:
 .endm
 
 ENTRY(enable_preempt)
-  ld t1, current_running
+  csrr t0, CSR_MHARTID
+  bnez t0, enable_1
+  ld t1, current_running_0
+enable_chk:
   ld t0, PCB_PREEMPT_COUNT(t1)
   beq t0, zero, do_enable
   addi t0, t0, -1
@@ -138,15 +141,24 @@ do_enable:
   not t0, x0
   csrs CSR_SIE, t0
   jr ra
+enable_1:
+  ld t1, current_running_1
+  j enable_chk
 ENDPROC(enable_preempt)
 
 ENTRY(disable_preempt)
   csrw CSR_SIE, zero
-  ld t1, current_running
+  csrr t0, CSR_MHARTID
+  bnez t0, disable_1
+  ld t1, current_running_0
+do_disable:
   ld t0, PCB_PREEMPT_COUNT(t1)
   addi t0, t0, 1
   sd t0, PCB_PREEMPT_COUNT(t1)
   jr ra
+disable_1:
+  ld t1, current_running_1
+  j do_disable
 ENDPROC(disable_preempt)
 
 ENTRY(enable_interrupt)
@@ -218,6 +230,8 @@ ENDPROC(switch_to)
 
 ENTRY(ret_from_exception)
   /* TO DO: */
+  call unlock_kernel
+  
   RESTORE_CONTEXT
   //restore user process scratch
   csrw CSR_SSCRATCH, tp
@@ -226,6 +240,8 @@ ENDPROC(ret_from_exception)
 
 ENTRY(exception_handler_entry)
   SAVE_CONTEXT
+  
+  call lock_kernel
 
   csrw CSR_SSCRATCH, x0
 

@@ -133,7 +133,8 @@ static void init_pcb()
      }
 
     /* remember to initialize `current_running`*/
-     current_running = &pid0_pcb;
+     current_running_0 = &pid0_pcb_0;
+     current_running_1 = &pid0_pcb_1;
 }
 
 static void err_syscall(int64_t num){
@@ -200,31 +201,41 @@ static void init_syscall(void)
 // The beginning of everything >_< ~~~~~~~~~~~~~~
 int main()
 {
+    //lock_kernel();
     // init Process Control Block (-_-!)
-    init_pcb();
-    printk("> [INIT] PCB initialization succeeded.\n\r");
-
-    // read CPU frequency
-    time_base = sbi_read_fdt(TIMEBASE);
-    printk("> [INIT] Kernel running at a timebase of %d.\n\r", time_base);
-
-    // init interrupt (^_^)
-    init_exception();
-    printk("> [INIT] Interrupt processing initialization succeeded.\n\r");
-    //printk("> [INIT] Interrupt processing initialization skipped.\n\r");
-
-    // init system call table (0_0)
-    init_syscall();
-    printk("> [INIT] System call initialized successfully.\n\r");
-    //printk("> [INIT] System call initialization skipped.\n\r");
-
-    // fdt_print(riscv_dtb);
-
-    // init screen (QAQ)
-    init_screen();
-    printk("> [INIT] SCREEN initialization succeeded.\n\r");
-    //printk("> [INIT] SCREEN initialization skipped.\n\r");
-
+    if (get_current_cpu_id() == 0){
+	    init_pcb();
+    	current_running = &current_running_0;
+    	printk("> [INIT] PCB initialization succeeded.\n\r");
+	
+    	// read CPU frequency
+    	time_base = sbi_read_fdt(TIMEBASE);
+    	printk("> [INIT] Kernel running at a timebase of %d.\n\r", time_base);
+	
+    	// init interrupt (^_^)
+    	init_exception();
+    	printk("> [INIT] Interrupt processing initialization succeeded.\n\r");
+    	//printk("> [INIT] Interrupt processing initialization skipped.\n\r");
+	
+    	// init system call table (0_0)
+    	init_syscall();
+    	printk("> [INIT] System call initialized successfully.\n\r");
+    	//printk("> [INIT] System call initialization skipped.\n\r");
+	
+    	// fdt_print(riscv_dtb);
+	
+    	// init screen (QAQ)
+    	init_screen();
+    	printk("> [INIT] SCREEN initialization succeeded.\n\r");
+    	//printk("> [INIT] SCREEN initialization skipped.\n\r");
+    	
+    	//sbi_send_ipi(2);
+	}else{//core 2 init
+		current_running = &current_running_1;
+		init_exception();
+    	printk("> [INIT] Core 2 initialization succeeded.\n\r");
+	}
+	//unlock_kernel();
     // TO DO:
     // Setup timer interrupt and enable all interrupt
     sbi_set_timer(get_ticks() + TIMER_INTERVAL);

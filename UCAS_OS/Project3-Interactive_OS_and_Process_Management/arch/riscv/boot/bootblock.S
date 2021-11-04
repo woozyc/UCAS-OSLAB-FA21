@@ -1,5 +1,6 @@
 #include <asm/sbidef.h>
 #include <asm/sbiasm.h>
+#include <csr.h>
 
 // #define BOOT_LOADER_SIG_OFFSET 0x1fe
 // #define OS_SIZE_LOC (BOOT_LOADER_SIG_OFFSET - 2)
@@ -116,12 +117,26 @@ runkernel:
 	jr s0
 	
 secondary:
-	/* TODO: 
-	 * 1. Mask all interrupts
-	 * 2. let stvec pointer to kernel_main
-	 * 3. enable software interrupt for ipi
-	 */
-
+	/* TO DO: */
+	//Mask all interrupts
+    csrw CSR_SIE, zero
+    csrw CSR_SIP, zero
+    
+	//let stvec pointer to kernel_main
+	la t0, kernel
+	csrw CSR_STVEC, t0
+	
+	//enable software interrupt for ipi
+	li t0, SIE_SSIE
+    csrs CSR_SIE, t0
+    
+    li t0, SR_SIE
+    csrw CSR_SSTATUS, t0
+    
+	lui a5, %hi(msg1)
+	addi a0, a5, %lo(msg1)
+	SBI_CALL SBI_CONSOLE_PUTSTR
+    
 wait_for_wakeup:
 	wfi
 	j wait_for_wakeup
@@ -136,5 +151,6 @@ stop:
 .data
 
 msg: .string "It's a bootloader...\n\r"
+msg1: .string "Core 2 starting...\n\r"
 msg2: .string "Please input the id of kernel you want to boot, total kernel number: "
 

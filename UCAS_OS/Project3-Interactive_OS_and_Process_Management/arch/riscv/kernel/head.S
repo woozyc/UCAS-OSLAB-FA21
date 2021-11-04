@@ -25,6 +25,10 @@ ENTRY(_start)
   la gp, __global_pointer$
   .option pop
 
+  //second core, do not clear bss twice
+  csrr t0, CSR_MHARTID
+  bnez t0, secondary
+  
   /* Clear BSS for flat non-ELF images */
   la a3, __bss_start
   la a4, __BSS_END__
@@ -36,8 +40,19 @@ clear_bss:
 clear_bss_done:
 
   /* setup C environment */
-  la tp, pid0_pcb
-  lw sp, pid0_stack
+  la tp, pid0_pcb_0
+  lw sp, pid0_stack_0
+  
+  //core 1 finish
+  j all_done
+
+secondary:
+
+  la tp, pid0_pcb_1
+  lw sp, pid0_stack_1
+  
+all_done:
+  
   csrw CSR_SSCRATCH, x0
 
   la a0, riscv_dtb

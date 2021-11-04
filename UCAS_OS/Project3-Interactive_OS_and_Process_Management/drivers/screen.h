@@ -31,8 +31,8 @@
 #define SCREEN_HEIGHT   50
 #define SHELL_BEGIN     25
 
-extern int screen_cursor_x;
-extern int screen_cursor_y;
+//extern int screen_cursor_x;
+//extern int screen_cursor_y;
 
 void vt100_move_cursor(int, int);
 

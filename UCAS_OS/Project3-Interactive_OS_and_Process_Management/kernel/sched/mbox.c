@@ -10,11 +10,12 @@ mailbox_array_cell mailbox_array[MAX_MAILBOX];
 
 int mbox_smp_down(smp_t *smp, int value)
 {
+    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     /* TO DO */
     int i = 0;
 	while(smp->value < value){
     	i++;
-    	do_block(&(current_running->list), &smp->block_queue);
+    	do_block(&((*current_running)->list), &smp->block_queue);
     }
     smp->value -= value;
     return i;

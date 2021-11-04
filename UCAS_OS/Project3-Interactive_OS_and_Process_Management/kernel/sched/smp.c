@@ -17,11 +17,12 @@ void do_smp_init(smp_t *smp, int value)
 
 int do_smp_down(smp_t *smp)
 {
+    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     /* TO DO */
     int i = 0;
 	while(smp->value == 0){
     	i++;
-    	do_block(&(current_running->list), &smp->block_queue);
+    	do_block(&((*current_running)->list), &smp->block_queue);
     }
     smp->value--;
     return i;
@@ -89,10 +90,11 @@ void do_barrier_init(barrier_t *barrier, int value){
     init_list_head(&barrier->block_queue);
 }
 void do_barrier_wait(barrier_t *barrier){
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	/* TO DO */
 	barrier->waiting++;
 	if(barrier->waiting != barrier->value)
-    	do_block(&(current_running->list), &(barrier->block_queue));
+    	do_block(&((*current_running)->list), &(barrier->block_queue));
     else{
     	while(barrier->block_queue.next != &(barrier->block_queue))
 			do_unblock(barrier->block_queue.next);
@@ -133,15 +135,19 @@ int barrier_destory(int handle){
 }
 
 
-
+uint32_t kernel_lock = 0;
 
 void lock_kernel()
 {
-    /* TODO: */
+    /* TO DO: */
+    uint32_t key = 1;
+    while(key)
+    	key = atomic_swap(key, &kernel_lock);
 }
 
 void unlock_kernel()
 {
-    /* TODO: */
+    /* TO DO: */
+    kernel_lock = 0;
 }
 

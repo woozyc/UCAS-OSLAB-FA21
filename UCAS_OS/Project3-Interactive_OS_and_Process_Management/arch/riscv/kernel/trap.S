@@ -2,7 +2,7 @@
 #include <csr.h>
 
 ENTRY(setup_exception)
-  /* TODO: 
+  /* TO DO: 
    * save exception_handler_entry into STVEC
    * enable global exceptions */
    la s0, exception_handler_entry
