@@ -131,7 +131,11 @@ typedef struct pcb
     /* last run time */
     unsigned int sched_time;
     
+    /* lock held by this pcb */
     list_head lock_list;
+    
+    /* running hart resitriction */
+    int hart_mask;
     
 } pcb_t;
 
@@ -148,8 +152,8 @@ extern list_head ready_queue;
 
 /* current running task PCB */
 extern pcb_t ** current_running;
-extern pcb_t * volatile current_running_0;
-extern pcb_t * volatile current_running_1;
+extern pcb_t * current_running_0;
+extern pcb_t * current_running_1;
 // extern pcb_t * volatile current_running[NR_CPUS];
 
 extern pcb_t pcb[NUM_MAX_TASK];
@@ -163,7 +167,7 @@ void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,
     pcb_t *pcb, ptr_t args);
 
-extern void switch_to(pcb_t *prev, pcb_t *next);
+extern void switch_to(pcb_t *prev, pcb_t *next, int no_store);
 void do_scheduler(void);
 void do_sleep(uint32_t);
 

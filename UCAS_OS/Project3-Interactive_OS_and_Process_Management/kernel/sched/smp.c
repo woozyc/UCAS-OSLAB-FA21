@@ -142,7 +142,7 @@ void lock_kernel()
     /* TO DO: */
     uint32_t key = 1;
     while(key)
-    	key = atomic_swap(key, &kernel_lock);
+    	key = atomic_swap(key, (ptr_t)&kernel_lock);
 }
 
 void unlock_kernel()

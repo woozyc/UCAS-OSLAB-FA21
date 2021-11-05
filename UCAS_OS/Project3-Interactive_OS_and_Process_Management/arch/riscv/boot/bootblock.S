@@ -6,13 +6,13 @@
 // #define OS_SIZE_LOC (BOOT_LOADER_SIG_OFFSET - 2)
 // #define OS_SIZE_LOC 0x1fc
 
-.equ os_num_loc, 0x5e0001fc
+.equ os_num_loc, 0x502001fc
 
 // 1. kernel address (move kernel to here ~)
-.equ kernel, 0x50200000
+.equ kernel, 0x50201000
 
 // 2. kernel main address (jmp here to start kernel main!)
-.equ kernel_main, 0x50200000
+.equ kernel_main, 0x50201000
 
 // 3. bootloader copy address (spare place for kernel)
 .equ copied_bootloader, 0x5e000000
@@ -25,30 +25,15 @@ main:
 	// fence on all memory and I/O
 	fence
 	
-	//copy bootloader to 0x5e000000
-	lui a5, %hi(copied_bootloader)
-	addi a0, a5, %lo(copied_bootloader)
-	li a1, 1
-	li a2, 0
-	SBI_CALL SBI_SD_READ
-	//jump to copied_bootloader to continue
-	lui s1, %hi(copied_bootloader)
-	addi s0, s1, %lo(copied_bootloader)
-	addi s0, s0, 38
-	jr s0
-	fence.i
-	.option push
-	.option norelax
-	la gp, __global_pointer$
-	.option pop
 	
 	// a0 is mhartid, a1 is the pointer of fdt
 	move s0,a0
 	move s1,a1
-
-	// print a \n to avoid system output error...
-	li a0, 10
-	SBI_CALL SBI_CONSOLE_PUTCHAR
+	
+	.option push
+	.option norelax
+	la gp, __global_pointer$
+	.option pop
 	
 	// The core whose mhartid=0 is selected to boot the kernel.
 	// Other cores should wait until the kernel's initialization
@@ -57,6 +42,11 @@ main:
 	bnez a0, secondary
 
 	// your code
+	
+	// print a \n to avoid system output error...
+	li a0, 10
+	SBI_CALL SBI_CONSOLE_PUTCHAR
+	
 	
 	// 1) task1 call BIOS print string "It's bootblock!"
 	//la a0, msg

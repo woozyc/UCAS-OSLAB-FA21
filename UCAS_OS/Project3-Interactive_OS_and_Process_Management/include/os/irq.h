@@ -80,6 +80,10 @@ extern void handle_syscall(regs_context_t *regs, uint64_t interrupt, uint64_t ca
 
 extern void enable_interrupt(void);
 extern void disable_interrupt(void);
+extern void enable_softwareint(void);
+extern void clear_softwareint(void);
+extern void disable_softwareint(void);
+extern void clear_interrupt(void);
 extern void enable_preempt(void);
 extern void disable_preempt(void);
 

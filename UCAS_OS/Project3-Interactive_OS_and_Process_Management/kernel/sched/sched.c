@@ -10,6 +10,7 @@
 //#include <stdio.h>
 #include <assert.h>
 #include <asm/regs.h>
+#include <os/smp.h>
 
 extern void ret_from_exception();
 
@@ -17,6 +18,7 @@ pcb_t pcb[NUM_MAX_TASK];
 const ptr_t pid0_stack_0 = INIT_KERNEL_STACK + 2 * PAGE_SIZE;
 pcb_t pid0_pcb_0 = {
     .pid = 0,
+    .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_0),//fake user_stack, pid0 always run in s mode
     .preempt_count = 0
@@ -24,6 +26,7 @@ pcb_t pid0_pcb_0 = {
 const ptr_t pid0_stack_1 = INIT_KERNEL_STACK + 4 * PAGE_SIZE;
 pcb_t pid0_pcb_1 = {
     .pid = 0,
+    .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + 3 * PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_1),
     .preempt_count = 0
@@ -33,8 +36,8 @@ list_head ready_queue;
 
 /* current running task PCB */
 pcb_t ** current_running;
-pcb_t * volatile current_running_0;
-pcb_t * volatile current_running_1;
+pcb_t * current_running_0;
+pcb_t * current_running_1;
 
 
 //priority scheduler
@@ -43,7 +46,7 @@ unsigned long cal_pcb_weight(pcb_t *pcb){
 	return (pcb->priority * time_base) / 64 + get_ticks() - pcb->sched_time;
 }
 
-list_node_t *find_next_proc(){
+list_node_t *find_next_proc(int hart_id){
 	unsigned long max_weight = 0, temp_weight;
 	list_node_t * node, * max_node = NULL;
     if(ready_queue.prev == &ready_queue){
@@ -51,6 +54,8 @@ list_node_t *find_next_proc(){
     }
     //find the proc with largest weight
 	for(node = ready_queue.prev; node != &ready_queue; node = node->prev){
+		if(!((LIST_TO_PCB(node)->hart_mask >> hart_id) % 2))
+			continue ;
 		temp_weight = cal_pcb_weight(LIST_TO_PCB(node));
 		if(temp_weight > max_weight){
 			max_node = node;
@@ -62,47 +67,91 @@ list_node_t *find_next_proc(){
 
 void do_scheduler(void)
 {
-    current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
+    int hart_id = get_current_cpu_id();
+    pcb_t *last_run;
+    int switch_to_no_store = 0;
+    current_running = hart_id ? &current_running_1 : &current_running_0;
+    last_run = (*current_running);
+    
+    /*
     if((*current_running)->status == TASK_EXITED){//has been killed by another core
     	list_del(&((*current_running)->list));
 		while((*current_running)->wait_list.next != &((*current_running)->wait_list))
 			do_unblock((*current_running)->wait_list.next);
 		while((*current_running)->lock_list.next != &((*current_running)->lock_list))
 			do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
-		*current_running = get_current_cpu_id() ? &(pid0_pcb_1) : &(pid0_pcb_0);
+		*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
+		switch_to_no_store = 1;
+    }else{
+    	// TO DO schedule
+    	// Modify the current_running pointer.
+    	//assert_supervisor_mode();
+    	last_run = (*current_running);
+    	//modified to use priorities
+    	(*current_running)->sched_time = get_ticks();
+    	//enqueue to head.next, dequeue from head.prev
+    	//list_node_t *last_list = ready_queue.prev;
+    	//modified to use priorities
+    	list_node_t *last_list = find_next_proc(hart_id);
+    	if(!last_list){//no job to run
+    		if((*current_running)->pid != 0 && (*current_running)->status != TASK_RUNNING){
+	    		*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
+    			switch_to(last_run, (*current_running), 0);
+    		}
+    		return ;
+   		}else{
+   			list_del(last_list);
+   			(*current_running) = LIST_TO_PCB(last_list);
+    	}
+    	(*current_running)->status = TASK_RUNNING;
+    	if(last_run->pid != 0 && last_run->status == TASK_RUNNING){//do not enqueue pid 0
+    		last_run->status = TASK_READY;
+    		list_add(&(last_run->list), &ready_queue);
+    	}
+    	//save screen cursor
+    	//last_run->cursor_x = screen_cursor_x;
+    		//last_run->cursor_y = screen_cursor_y;
+	
+    	// restore the current_runnint's cursor_x and cursor_y
+    	vt100_move_cursor((*current_running)->cursor_x,
+    	                  (*current_running)->cursor_y);
+    	//screen_cursor_x = current_running->cursor_x;
+    	//screen_cursor_y = current_running->cursor_y;
     }
-    // TO DO schedule
-    // Modify the current_running pointer.
-    //assert_supervisor_mode();
-    pcb_t *last_run = (*current_running);
-    //modified to use priorities
-    (*current_running)->sched_time = get_ticks();
-    //enqueue to head.next, dequeue from head.prev
-    //list_node_t *last_list = ready_queue.prev;
-    //modified to use priorities
-    list_node_t *last_list = find_next_proc();
-    if(!last_list){//no job to run
-    	return ;
-   	}else{
-   		list_del(last_list);
+    
+    // TO DO: switch_to current_running
+    switch_to(last_run, (*current_running), switch_to_no_store);
+    */
+    
+    //find next process to run
+    list_node_t *last_list = find_next_proc(hart_id);
+    if(!last_list){										//ready_queue empty
+    	if((*current_running)->status == TASK_EXITED){	//exited, free sources and switch to pid 0
+			switch_to_no_store = 1;						//do not store killed regs when switching
+    		list_del(&((*current_running)->list));
+			while((*current_running)->wait_list.next != &((*current_running)->wait_list))
+				do_unblock((*current_running)->wait_list.next);
+			while((*current_running)->lock_list.next != &((*current_running)->lock_list))
+				do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
+			*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
+    	}else if((*current_running)->status == TASK_RUNNING){	//continue on current process
+    		return ;
+    	}else{	//blocked or zombie, switch to pid 0
+    		*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
+    	}
+    }else{	//found one ready process
+    	list_del(last_list);
    		(*current_running) = LIST_TO_PCB(last_list);
     }
+    //prepare to switch
     (*current_running)->status = TASK_RUNNING;
-    if(last_run->pid != 0 && last_run->status == TASK_RUNNING){//do not enqueue pid 0
-    	last_run->status = TASK_READY;
+   	if(last_run->pid != 0 && last_run->status == TASK_RUNNING){//do not enqueue pid 0
+   		last_run->status = TASK_READY;
     	list_add(&(last_run->list), &ready_queue);
     }
-    //save screen cursor
-    //last_run->cursor_x = screen_cursor_x;
-    //last_run->cursor_y = screen_cursor_y;
-
-    // restore the current_runnint's cursor_x and cursor_y
-    vt100_move_cursor((*current_running)->cursor_x,
-                      (*current_running)->cursor_y);
-    //screen_cursor_x = current_running->cursor_x;
-    //screen_cursor_y = current_running->cursor_y;
-    // TO DO: switch_to current_running
-    switch_to(last_run, (*current_running));
+    
+    //switch
+    switch_to(last_run, (*current_running), switch_to_no_store);
 }
 
 void do_sleep(uint32_t sleep_time)
@@ -245,6 +294,7 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode){
      		//init stack
      		pcb[i].kernel_sp = pcb[i].kernel_stack_base;
      		pcb[i].user_sp = pcb[i].user_stack_base;
+     		pcb[i].hart_mask = 3;
 			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, info->entry_point, pcb + i, (ptr_t)arg);
      		init_list_head(&(pcb[i].wait_list));
      		init_list_head(&(pcb[i].lock_list));
@@ -269,7 +319,6 @@ int do_kill(pid_t pid){
 		prints("> [KILL] Can not kill shell\n");
 		return 0;
 	}
-	pcb[i].status = TASK_EXITED;
 	if(pcb[i].status != TASK_RUNNING){//not running on the other core
 		list_del(&(pcb[i].list));
 		while(pcb[i].wait_list.next != &(pcb[i].wait_list))
@@ -277,6 +326,7 @@ int do_kill(pid_t pid){
 		while(pcb[i].lock_list.next != &(pcb[i].lock_list))
 			do_mutex_lock_release((mutex_lock_t *)pcb[i].lock_list.next);
 	}
+	pcb[i].status = TASK_EXITED;
 	return 1;
 }
 

@@ -177,6 +177,20 @@ static int resolve_command(int len){
 			}
 		}
 		return 5;
+	}else if(!strcmp(cmd, "taskset")){
+		if(!strcmp(args, "-p")){
+			args = input_buffer + j++;
+			for( ; j < len - 1; j++){
+				if(input_buffer[j] == ' '){//split command
+					input_buffer[j] = 0;
+					j++;
+					break;
+				}
+			}
+		}else{
+			;
+		}
+		return 5;
 	}else{
 		printf("  Unknown command, try \"help\"\n");
 		return 0;
@@ -186,7 +200,7 @@ static int resolve_command(int len){
 void test_shell()
 {
     char c;
-    int i, j;
+    int i;
     // TO DO:
     sys_screen_clear();
     shell_init_display();

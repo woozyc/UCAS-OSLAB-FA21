@@ -114,10 +114,11 @@ static void init_pcb()
      pcb[0].priority = task->priority;
      pcb[0].sched_time = get_ticks();
      pcb[0].mode = AUTO_CLEANUP_ON_EXIT;
+     pcb[0].hart_mask = 3;
      init_list_head(&(pcb[0].wait_list));
      init_list_head(&(pcb[0].lock_list));
      //init pcb stack
-     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, task->entry_point, pcb, NULL);
+     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, task->entry_point, pcb, (ptr_t)NULL);
      //add to ready_queue
      list_add(&(pcb[0].list), &ready_queue);
      //init other pcbs
@@ -201,7 +202,7 @@ static void init_syscall(void)
 // The beginning of everything >_< ~~~~~~~~~~~~~~
 int main()
 {
-    //lock_kernel();
+    lock_kernel();
     // init Process Control Block (-_-!)
     if (get_current_cpu_id() == 0){
 	    init_pcb();
@@ -223,22 +224,29 @@ int main()
     	//printk("> [INIT] System call initialization skipped.\n\r");
 	
     	// fdt_print(riscv_dtb);
-	
-    	// init screen (QAQ)
-    	init_screen();
-    	printk("> [INIT] SCREEN initialization succeeded.\n\r");
-    	//printk("> [INIT] SCREEN initialization skipped.\n\r");
+		
+		//wake up slave core
+		disable_softwareint();
+    	sbi_send_ipi((unsigned long *)2);
+    	clear_softwareint();
+    	enable_softwareint();
     	
-    	//sbi_send_ipi(2);
 	}else{//core 2 init
 		current_running = &current_running_1;
 		init_exception();
     	printk("> [INIT] Core 2 initialization succeeded.\n\r");
+    	
 	}
-	//unlock_kernel();
     // TO DO:
     // Setup timer interrupt and enable all interrupt
+    if (get_current_cpu_id() == 0){
+    	// init screen (QAQ)
+    	init_screen();
+    	printk("> [INIT] SCREEN initialization succeeded.\n\r");
+    	//printk("> [INIT] SCREEN initialization skipped.\n\r");
+    }
     sbi_set_timer(get_ticks() + TIMER_INTERVAL);
+	unlock_kernel();
 
     while (1) {
         // (QAQQQQQQQQQQQ)

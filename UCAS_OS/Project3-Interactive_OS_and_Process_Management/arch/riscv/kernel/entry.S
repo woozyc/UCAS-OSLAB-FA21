@@ -169,13 +169,39 @@ ENDPROC(enable_interrupt)
 
 ENTRY(disable_interrupt)
   li t0, SR_SIE
-  csrs CSR_SSTATUS, t0
+  csrc CSR_SSTATUS, t0
   jr ra
 ENDPROC(disable_interrupt)
+
+ENTRY(enable_softwareint)
+  li t0, SIE_SSIE
+  csrs CSR_SSTATUS, t0
+  jr ra
+ENDPROC(enable_softwareint)
+
+ENTRY(disable_softwareint)
+  li t0, SIE_SSIE
+  csrc CSR_SIE, t0
+  jr ra
+ENDPROC(disable_softwareint)
+
+ENTRY(clear_softwareint)
+  li t0, SIE_SSIE
+  csrc CSR_SIP, t0
+  jr ra
+ENDPROC(clear_softwareint)
+
+ENTRY(clear_interrupt)
+  mv t0, zero
+  csrs CSR_SIP, t0
+  jr ra
+ENDPROC(clear_interrupt)
 
 // the address of previous pcb in a0
 // the address of next pcb in a1
 ENTRY(switch_to)
+  //if in no_store mode, only ld, no sd
+  bnez a2, no_store
   // save all callee save registers on kernel stack
   /* TO DO: store all callee save registers,
    * see the definition of `struct switchto_context` in sched.h*/
@@ -201,6 +227,7 @@ ENTRY(switch_to)
   // restore next
   /* TO DO: restore all callee save registers,
    * see the definition of `struct switchto_context` in sched.h*/
+no_store:
   mv tp, a1
   //tp now is the addr of current_running pcb
   ld tp, PCB_KERNEL_SP(tp)

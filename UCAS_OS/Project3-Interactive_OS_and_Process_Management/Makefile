@@ -5,8 +5,8 @@ OBJDUMP = ${CROSS_PREFIX}objdump
 CFLAGS = -O0  -fno-builtin -nostdlib -T riscv.lds -Wall -mcmodel=medany -Iinclude -Idrivers -Itest -Itest/test_project2 -Itest/test_project3 -Itiny_libc/include -nostdinc -g
 DISK = /dev/sdb
 
-BOOTLOADER_ENTRYPOINT = 0x5e000000
-KERNEL_ENTRYPOINT = 0x50200000
+BOOTLOADER_ENTRYPOINT = 0x50200000
+KERNEL_ENTRYPOINT = 0x50201000
 
 ARCH = riscv
 ARCH_DIR = ./arch/$(ARCH)

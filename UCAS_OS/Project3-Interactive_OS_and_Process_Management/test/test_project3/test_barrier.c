@@ -15,7 +15,6 @@ void test_barrier(void)
     srand(clock());
 
     mthread_barrier_init(&barrier, NUM_TB);
-    barrier = 100;
 
     struct task_info child_task = {(uintptr_t)&barrier_task, USER_PROCESS};
     pid_t pids[NUM_TB];

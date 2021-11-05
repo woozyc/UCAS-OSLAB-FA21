@@ -4,6 +4,7 @@
 // #define NR_CPUS 2
 // extern void* cpu_stack_pointer[NR_CPUS];
 // extern void* cpu_pcb_pointer[NR_CPUS];
+extern uint32_t kernel_lock;
 extern uint64_t get_current_cpu_id();
 extern void lock_kernel();
 extern void unlock_kernel();

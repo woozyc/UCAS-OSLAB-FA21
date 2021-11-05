@@ -28,7 +28,7 @@
 #define INCLUDE_CONSOLE_H_
 
 #define SCREEN_WIDTH    80
-#define SCREEN_HEIGHT   50
+#define SCREEN_HEIGHT   42
 #define SHELL_BEGIN     25
 
 //extern int screen_cursor_x;
