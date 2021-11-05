@@ -179,11 +179,12 @@ void do_priority();
 int do_fork();
 
 void do_ps(void);
-extern pid_t do_spawn(task_info_t *task, void* arg, spawn_mode_t mode);
+extern pid_t do_spawn(task_info_t *task, void* arg, spawn_mode_t mode, int hart_mask);
 extern void do_exit(void);
 extern int do_kill(pid_t pid);
 extern int do_waitpid(pid_t pid);
 extern void do_process_show();
 extern pid_t do_getpid();
+extern void do_setmask(int mask, int pid);
  
 #endif

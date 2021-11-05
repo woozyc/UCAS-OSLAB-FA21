@@ -5,7 +5,7 @@
 #include <mthread.h>
 #include <stdlib.h>
 
-#define MAX_ITERATION 100
+#define MAX_ITERATION 10000
 #define INTEGER_TEST_CHUNK 100000
 #define INTEGER_TEST_NUM 5
 
@@ -20,7 +20,7 @@ void test_affinity(void)
     struct task_info task_test = {(uintptr_t)&integer_test_task, USER_PROCESS};
     pid_t pids[INTEGER_TEST_NUM] = {0};
     for (int i = 0; i < INTEGER_TEST_NUM; ++i) {
-        pids[i] = sys_spawn(&task_test, (void *)(long)(2 + i), ENTER_ZOMBIE_ON_EXIT);
+        pids[i] = sys_spawn(&task_test, (void *)(long)(2 + i), ENTER_ZOMBIE_ON_EXIT, 0);
         printf("%d, ", pids[i]);
     }
     printf("}\n\r");

@@ -72,6 +72,7 @@ void do_scheduler(void)
     int switch_to_no_store = 0;
     current_running = hart_id ? &current_running_1 : &current_running_0;
     last_run = (*current_running);
+    (*current_running)->sched_time = get_ticks();
     
     /*
     if((*current_running)->status == TASK_EXITED){//has been killed by another core
@@ -263,22 +264,24 @@ void do_ps(void){
 			prints("[%d] PID : %d  STATUS : ", j, pcb[i].pid);
 			switch(pcb[i].status){
 				case TASK_BLOCKED:
-					prints("BLOCKED\n"); break;
+					prints("BLOCKED "); break;
 				case TASK_RUNNING:
-					prints("RUNNING\n"); break;
+					prints("RUNNING "); break;
 				case TASK_READY:
-					prints("READY\n"); break;
+					prints("READY   "); break;
 				case TASK_ZOMBIE:
-					prints("ZOMBIE\n"); break;
+					prints("ZOMBIE  "); break;
 				default:
-					prints("UNKNOWN\n");
+					prints("UNKNOWN ");
 			}
+			prints("MASK : 0x%x\n", pcb[i].hart_mask);
 			j++;
 		}
 	}
 }
 
-pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode){
+pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	//TO DO:
 	int i;
 	for(i = 0; i < NUM_MAX_TASK; i++){
@@ -294,7 +297,7 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode){
      		//init stack
      		pcb[i].kernel_sp = pcb[i].kernel_stack_base;
      		pcb[i].user_sp = pcb[i].user_stack_base;
-     		pcb[i].hart_mask = 3;
+     		pcb[i].hart_mask = hart_mask ? hart_mask : (*current_running)->hart_mask;
 			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, info->entry_point, pcb + i, (ptr_t)arg);
      		init_list_head(&(pcb[i].wait_list));
      		init_list_head(&(pcb[i].lock_list));
@@ -370,4 +373,9 @@ pid_t do_getpid(void){
 	//TO DO:
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	return (*current_running)->pid;
+}
+
+void do_setmask(int mask, int pid){
+	//TO DO:
+	pcb[pid-1].hart_mask = mask;
 }

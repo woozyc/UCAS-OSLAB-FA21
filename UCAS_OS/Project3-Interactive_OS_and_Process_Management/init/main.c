@@ -194,6 +194,8 @@ static void init_syscall(void)
     syscall[SYSCALL_MAILBOX_CLOSE] = (long int (*)())&kernel_mbox_close;
     syscall[SYSCALL_MAILBOX_SEND] = (long int (*)())&kernel_mbox_send;
     syscall[SYSCALL_MAILBOX_RECV] = (long int (*)())&kernel_mbox_recv;
+    
+    syscall[SYSCALL_SETMASK] = (long int (*)())&do_setmask;
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }
@@ -202,9 +204,9 @@ static void init_syscall(void)
 // The beginning of everything >_< ~~~~~~~~~~~~~~
 int main()
 {
-    lock_kernel();
     // init Process Control Block (-_-!)
     if (get_current_cpu_id() == 0){
+    	lock_kernel();
 	    init_pcb();
     	current_running = &current_running_0;
     	printk("> [INIT] PCB initialization succeeded.\n\r");
@@ -224,6 +226,10 @@ int main()
     	//printk("> [INIT] System call initialization skipped.\n\r");
 	
     	// fdt_print(riscv_dtb);
+    	// init screen (QAQ)
+    	init_screen();
+    	printk("> [INIT] SCREEN initialization succeeded.\n\r");
+    	//printk("> [INIT] SCREEN initialization skipped.\n\r");
 		
 		//wake up slave core
 		disable_softwareint();
@@ -234,17 +240,11 @@ int main()
 	}else{//core 2 init
 		current_running = &current_running_1;
 		init_exception();
-    	printk("> [INIT] Core 2 initialization succeeded.\n\r");
-    	
+    	//printk("> [INIT] Core 2 initialization succeeded.\n\r");
 	}
     // TO DO:
     // Setup timer interrupt and enable all interrupt
-    if (get_current_cpu_id() == 0){
-    	// init screen (QAQ)
-    	init_screen();
-    	printk("> [INIT] SCREEN initialization succeeded.\n\r");
-    	//printk("> [INIT] SCREEN initialization skipped.\n\r");
-    }
+   
     sbi_set_timer(get_ticks() + TIMER_INTERVAL);
 	unlock_kernel();
 

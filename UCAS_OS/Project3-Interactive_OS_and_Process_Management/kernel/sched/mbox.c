@@ -44,7 +44,6 @@ void do_mbox_init(kernel_mbox_t *mbox, char *name){
 	kstrcpy((char *)&mbox->name, name);
 }
 int do_mbox_send(kernel_mbox_t *mbox, void *msg, int msg_length){
-	int i;
 	int count = 0;
 	count += mbox_smp_down(&mbox->empty, msg_length);
 	do_mutex_lock_acquire(&mbox->lock);

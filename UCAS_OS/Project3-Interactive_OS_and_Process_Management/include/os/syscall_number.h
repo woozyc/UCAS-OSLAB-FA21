@@ -77,4 +77,6 @@
 #define SYSCALL_MAILBOX_SEND 36
 #define SYSCALL_MAILBOX_RECV 37
 
+#define SYSCALL_SETMASK 39
+
 #endif

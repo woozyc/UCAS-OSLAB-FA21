@@ -28,9 +28,7 @@ void test_multicore(void)
     struct TestMultiCoreArg singleCoreArg = {1, 0, MAX_RANGE, &single_core_result};
     // single core performance
     clock_t singleCoreBegin = clock();
-    pid_t single_pid = sys_spawn(&task_add,
-	                    (void*)&singleCoreArg,
-                            ENTER_ZOMBIE_ON_EXIT);
+    pid_t single_pid = sys_spawn(&task_add, (void*)&singleCoreArg, ENTER_ZOMBIE_ON_EXIT, 3);
     sys_waitpid(single_pid);
     clock_t singleCoreEnd = clock();
     sys_move_cursor(1, 6);
@@ -48,9 +46,7 @@ void test_multicore(void)
 
     clock_t multiCoreBegin = clock();
     for (int i = 0; i < NUM_CPUS; ++i) {
-        pids[i] = sys_spawn(&task_add,
-	                    (void*)&multiCoreArgs[i],
-                            ENTER_ZOMBIE_ON_EXIT);
+        pids[i] = sys_spawn(&task_add, (void*)&multiCoreArgs[i], ENTER_ZOMBIE_ON_EXIT, 3);
     }
 
     for (int i = 0; i < NUM_CPUS; ++i) {

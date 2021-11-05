@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <os.h>
 
-extern long invoke_syscall(long, long, long, long);
+extern long invoke_syscall(long, long, long, long, long);
 
 void sys_sleep(uint32_t);
 
@@ -49,7 +49,7 @@ void sys_priority(task_priority_t priority);
 int sys_fork();
 uint32_t sys_get_wall_time(uint32_t *_time_elapsed);
 
-pid_t sys_spawn(task_info_t *info, void* arg, spawn_mode_t mode);
+pid_t sys_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask);
 void sys_exit(void);
 int sys_kill(pid_t pid);
 int sys_waitpid(pid_t pid);
@@ -62,5 +62,7 @@ char sys_serial_read();
 void sys_serial_write(char *s);
 void sys_screen_clear();
 char sys_getchar();
+
+void sys_setmask(int mask, int pid);
 
 #endif

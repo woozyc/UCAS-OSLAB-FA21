@@ -87,6 +87,8 @@ static void shell_help(){
 	printf("  clear         : clear screen\n      clear screen and command shell\n");
 	printf("  exec [task_id]: execute task\n      start running certain test task\n");
 	printf("  kill [pid]    : kill process\n      kill a process\n");
+	printf("  taskset    [mask] [task_id] : start a task with specified hart mask\n");
+	printf("          -p [mask] [pid]     : set process hart mask\n");
 }
 
 static void shell_exec(int id){
@@ -94,7 +96,7 @@ static void shell_exec(int id){
 		printf("  No such task to execute\n");
 		return ;
 	}
-	pid_t pid = sys_spawn(test_tasks[id], NULL, AUTO_CLEANUP_ON_EXIT);
+	pid_t pid = sys_spawn(test_tasks[id], NULL, AUTO_CLEANUP_ON_EXIT, 3);
 	if(pid > 0)
 		printf("  Task executed, pid = %d\n", pid);
 	else
@@ -112,6 +114,7 @@ static void shell_kill(int pid){
 static int resolve_command(int len){
 	int j;
 	char *cmd, *args;
+	int set_mask, set_pid, set_taskid;
 	for(j = 0; j < len - 1 && input_buffer[j] == ' '; j++);//find first none empty char
 	cmd = input_buffer + j;
 	if(strlen(cmd) == 0)
@@ -187,10 +190,49 @@ static int resolve_command(int len){
 					break;
 				}
 			}
+			if(*args < '0' || *args > '9'){
+				printf("  Usage: taskset   [mask] [pid]\n  or   : taskset -p [mask] [pid]\n");
+				return -1;
+			}
+			set_mask = itoa(args);
+			args = input_buffer + j++;
+			for( ; j < len - 1; j++){
+				if(input_buffer[j] == ' '){//split command
+					input_buffer[j] = 0;
+					j++;
+					break;
+				}
+			}
+			if(*args < '0' || *args > '9'){
+				printf("  Usage: taskset [mask] [pid]\n  or   : taskset -p [mask] [pid]\n");
+				return -1;
+			}
+			set_pid = itoa(args);
+			sys_setmask(set_mask, set_pid);
+			printf("  Process %d mask set, hart mask = %d\n", set_pid, set_mask);
 		}else{
-			;
+			if(*args < '0' || *args > '9'){
+				printf("  Usage: taskset [mask] [pid]\n  or   : taskset -p [mask] [pid]\n");
+				return -1;
+			}
+			set_mask = itoa(args);
+			args = input_buffer + j++;
+			for( ; j < len - 1; j++){
+				if(input_buffer[j] == ' '){//split command
+					input_buffer[j] = 0;
+					j++;
+					break;
+				}
+			}
+			if(*args < '0' || *args > '9'){
+				printf("  Usage: taskset   [mask] [pid]\n  or   : taskset -p [mask] [pid]\n");
+				return -1;
+			}
+			set_taskid = itoa(args);
+			sys_spawn(test_tasks[set_taskid], NULL, AUTO_CLEANUP_ON_EXIT, set_mask);
+			printf("  Task %d executed, mask = %d\n", set_taskid, set_mask);
 		}
-		return 5;
+		return 6;
 	}else{
 		printf("  Unknown command, try \"help\"\n");
 		return 0;

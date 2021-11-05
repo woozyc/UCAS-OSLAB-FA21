@@ -51,10 +51,9 @@ void wait_exit_task()
     mthread_mutex_init(&lock1);
     mthread_mutex_init(&lock2);
 
-    pid_t pid_task1 = sys_spawn(&task1, NULL, ENTER_ZOMBIE_ON_EXIT);
+    pid_t pid_task1 = sys_spawn(&task1, NULL, ENTER_ZOMBIE_ON_EXIT, 3);
     sys_sleep(1); // wait enough time for task1 to spawn
-    sys_spawn(&task2, (void*)(long)pid_task1,
-                                AUTO_CLEANUP_ON_EXIT);
+    sys_spawn(&task2, (void*)(long)pid_task1, AUTO_CLEANUP_ON_EXIT, 3);
 
     int print_location = 3;
 

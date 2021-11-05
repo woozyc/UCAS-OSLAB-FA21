@@ -19,7 +19,7 @@ void test_barrier(void)
     struct task_info child_task = {(uintptr_t)&barrier_task, USER_PROCESS};
     pid_t pids[NUM_TB];
     for (int i = 0; i < NUM_TB; ++i) {
-        pids[i] = sys_spawn(&child_task, (void*)(long)(i + PRINT_START), ENTER_ZOMBIE_ON_EXIT);
+        pids[i] = sys_spawn(&child_task, (void*)(long)(i + PRINT_START), ENTER_ZOMBIE_ON_EXIT, 3);
     }
 
     for (int i = 0; i < NUM_TB; ++i) {
