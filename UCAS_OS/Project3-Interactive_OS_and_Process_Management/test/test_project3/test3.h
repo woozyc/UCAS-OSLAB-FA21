@@ -22,6 +22,8 @@ void barrier_task(int print_location);
 void strServer(void);
 void strGenerator(void);
 
+void mailbox_test(void);
+
 // [MULTI-CORE]
 void test_multicore(void);
 void test_affinity(void);

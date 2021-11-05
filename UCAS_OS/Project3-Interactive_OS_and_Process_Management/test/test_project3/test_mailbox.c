@@ -7,7 +7,7 @@
 #include <mailbox.h>
 #include <sys/syscall.h>
 
-
+#define MAX_MAILBOX_OPERATOR 3
 // struct task_info strserver_task = {(uintptr_t)&strServer, USER_PROCESS};
 // struct task_info strgenerator_task = {(uintptr_t)&strGenerator, USER_PROCESS};
 
@@ -141,8 +141,87 @@ void strGenerator(void)
         bytes += len;
 
         sys_move_cursor(1, position);
-        printf("[Client %d] send bytes: %ld, blocked: %d", pid,
-            bytes, blocked);
+        printf("[Client %d] send bytes: %ld, blocked: %d", pid, bytes, blocked);
         sys_sleep(1);
     }
+}
+
+//added, for task 4
+/*int mailbox_send_recv(mailbox_t mb, char *sendbuffer, char *recvbuffer, int *sendlen, int *recvlen, int act_prefer){
+	;
+}*/
+void mailbox_act(int printloc){
+	mailbox_t m1 = mbox_open("mbox_act_1");
+	mailbox_t m2 = mbox_open("mbox_act_2");
+	mailbox_t m3 = mbox_open("mbox_act_3");
+	int m_num;
+	
+    int send_len = 0, recv_len = 0;
+    int act_result;
+    char strBuffer[MAX_MBOX_LENGTH - sizeof(struct MsgHeader)];
+    char msgBuffer[MAX_MBOX_LENGTH];
+    int pid = sys_getpid();
+    sys_move_cursor(1, printloc);
+    printf("[Operator %d] Started", pid);
+    sys_sleep(1);
+	//select send/recv and mbox randomly
+	int act_prefer;
+	mailbox_t mbox;
+	while(1){
+		m_num = rand() % 3;
+		switch(m_num){
+			case 0:
+				mbox = m1; break;
+			case 1:
+				mbox = m2; break;
+			case 2:
+				mbox = m3; break;
+			default:
+				mbox = 0; break;
+		}
+		send_len = (rand() % ((MAX_MBOX_LENGTH - sizeof(struct MsgHeader))/2)) + 1;
+		act_prefer = rand() % 2;
+		recv_len = send_len;
+    	generateRandomString(strBuffer, send_len);
+    	//act_result = mailbox_send_recv(mbox, strBuffer, msgBuffer, &send_len, &recv_len, act_prefer);
+    	act_result = mbox_act(mbox, strBuffer, send_len, act_prefer);
+		while(act_result != act_prefer){
+    		sys_move_cursor(1, printloc);
+			if(!act_result){
+				printf("[Operator %d] Sent %s%d bytes to   mailbox %d ", pid, (send_len/10) ? "" : " ", send_len, m_num);
+			}else{
+				printf("[Operator %d] Recv %s%d bytes from mailbox %d ", pid, (send_len/10) ? "" : " ", recv_len, m_num);
+			}
+			printf(", Try %s failed . ", act_prefer ? "op_recv" : "op_send");
+			send_len = (rand() % ((MAX_MBOX_LENGTH - sizeof(struct MsgHeader))/2)) + 1;
+			act_prefer = rand() % 2;
+			recv_len = send_len;
+    		generateRandomString(strBuffer, send_len);
+    		//act_result = mailbox_send_recv(mbox, strBuffer, msgBuffer, &send_len, &recv_len, act_prefer);
+    		act_result = mbox_act(mbox, strBuffer, send_len, act_prefer);
+			sys_sleep(2);
+		}
+    	sys_move_cursor(1, printloc);
+		if(!act_result){
+			printf("[Operator %d] Sent %s%d bytes to   mailbox %d ", pid, (send_len/10) ? "" : " ", send_len, m_num);
+		}else{
+			printf("[Operator %d] Recv %s%d bytes from mailbox %d ", pid, (send_len/10) ? "" : " ", recv_len, m_num);
+		}
+		printf(", Try %s succeed.  ", act_prefer ? "op_recv" : "op_send");
+		sys_sleep(2);
+    }
+	sys_exit();
+}
+
+void mailbox_test(void){
+	struct task_info mailbox_operator = {(uintptr_t)&mailbox_act, USER_PROCESS, P_4};
+	int i;
+	int pids[MAX_MAILBOX_OPERATOR];
+	for(i = 0; i < MAX_MAILBOX_OPERATOR; i++){
+		pids[i] = sys_spawn(&mailbox_operator, (void*)(long)(i+1), ENTER_ZOMBIE_ON_EXIT, 0);
+	}
+	for(i = 0; i < MAX_MAILBOX_OPERATOR; i++){
+		sys_waitpid(pids[i]);
+	}
+	sys_exit();
 }

@@ -314,12 +314,16 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 int do_kill(pid_t pid){
 	//TO DO:
 	int i = pid - 1;
-	if(i < 0 || i >= NUM_MAX_TASK || pcb[i].status == TASK_EXITED){
+	if(i < -1 || i >= NUM_MAX_TASK || pcb[i].status == TASK_EXITED){
 		prints("> [KILL] Can not kill a process that doesn't exist\n");
 		return 0;
 	}
 	if(i == 0){
 		prints("> [KILL] Can not kill shell\n");
+		return 0;
+	}
+	if(i == -1){
+		prints("> [KILL] Can not kill Kernel\n");
 		return 0;
 	}
 	if(pcb[i].status != TASK_RUNNING){//not running on the other core

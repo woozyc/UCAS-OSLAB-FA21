@@ -28,6 +28,7 @@ int kernel_mbox_open(char *name);
 int kernel_mbox_close(int handle);
 int kernel_mbox_send(int handle, void *msg, int msg_length);
 int kernel_mbox_recv(int handle, void *msg, int msg_length);
+int kernel_mbox_act(int handle, void *msg, int msg_length, int act_prefer);
 
 void do_mbox_init(kernel_mbox_t *mbox, char *name);
 int do_mbox_send(kernel_mbox_t *mbox, void *msg, int msg_length);

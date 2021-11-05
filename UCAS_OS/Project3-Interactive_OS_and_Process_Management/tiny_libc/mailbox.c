@@ -25,3 +25,8 @@ int mbox_recv(mailbox_t mailbox, void *msg, int msg_length)
     // TO DO:
     return invoke_syscall(SYSCALL_MAILBOX_RECV, (long)mailbox, (long)msg, (long)msg_length, IGNORE);
 }
+
+int mbox_act(mailbox_t mailbox, void *msg, int msg_length, int act_prefer)
+{
+	return invoke_syscall(SYSCALL_MAILBOX_ACT, (long)mailbox, (long)msg, (long)msg_length, (long)act_prefer);
+}

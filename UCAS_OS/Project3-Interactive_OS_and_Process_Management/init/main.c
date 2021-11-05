@@ -194,6 +194,7 @@ static void init_syscall(void)
     syscall[SYSCALL_MAILBOX_CLOSE] = (long int (*)())&kernel_mbox_close;
     syscall[SYSCALL_MAILBOX_SEND] = (long int (*)())&kernel_mbox_send;
     syscall[SYSCALL_MAILBOX_RECV] = (long int (*)())&kernel_mbox_recv;
+    syscall[SYSCALL_MAILBOX_ACT] = (long int (*)())&kernel_mbox_act;
     
     syscall[SYSCALL_SETMASK] = (long int (*)())&do_setmask;
     //init sleep_queue
@@ -233,7 +234,7 @@ int main()
 		
 		//wake up slave core
 		disable_softwareint();
-    	sbi_send_ipi((unsigned long *)2);
+    	sbi_send_ipi((unsigned long *)0);
     	clear_softwareint();
     	enable_softwareint();
     	

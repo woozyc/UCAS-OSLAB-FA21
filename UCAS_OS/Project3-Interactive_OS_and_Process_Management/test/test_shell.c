@@ -49,14 +49,17 @@ struct task_info strgenerator_task = {(uintptr_t)&strGenerator, USER_PROCESS, P_
 struct task_info task_test_multicore = {(uintptr_t)&test_multicore, USER_PROCESS, P_4};
 struct task_info task_test_affinity = {(uintptr_t)&test_affinity, USER_PROCESS, P_4};
 
+struct task_info task_mailbox_test = {(uintptr_t)&mailbox_test, USER_PROCESS, P_4};
+
 static struct task_info *test_tasks[16] = {&task_test_waitpid,
                                            &task_test_semaphore,
                                            &task_test_barrier,
                                            &task_test_multicore,
                                            &strserver_task,
                                            &strgenerator_task,
-                                           &task_test_affinity};
-static int num_test_tasks = 7;
+                                           &task_test_affinity,
+                                           &task_mailbox_test};
+static int num_test_tasks = 8;
 
 
 static char input_buffer[SCREEN_WIDTH];
@@ -82,7 +85,7 @@ static void shell_clear(){
 }
 
 static void shell_help(){
-	printf("  [MANUAL]");
+	printf("  [MANUAL]\n");
 	printf("  ps            : process show\n      display all the processes and their statuses\n");
 	printf("  clear         : clear screen\n      clear screen and command shell\n");
 	printf("  exec [task_id]: execute task\n      start running certain test task\n");
@@ -147,8 +150,8 @@ static int resolve_command(int len){
 		if(*args < '0' || *args > '9'){
 			//printf("%c\n", *args);
 			printf("  Usage: exec [task_id]\n");
-			printf("    0: waitpid   1: semaphore    2: barrier 3: multicore\n");
-			printf("    4: strserver 5: strgenerator 6: affinity\n");
+			printf("    0: waitpid   1: semaphore    2: barrier  3: multicore\n");
+			printf("    4: strserver 5: strgenerator 6: affinity 7: 3_mailbox\n");
 			return -1;
 		}
 		while(*args >= '0' && *args <= '9' && j <= len){
@@ -278,9 +281,7 @@ void test_shell()
         }
         input_buffer[i] = 0;
         // TO DO: parse input
-        resolve_command(i);
-
         // TO DO: ps, exec, kill, clear
-        
+        resolve_command(i);
     }
 }

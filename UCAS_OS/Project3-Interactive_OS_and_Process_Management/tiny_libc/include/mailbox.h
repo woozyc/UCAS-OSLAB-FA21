@@ -13,5 +13,6 @@ mailbox_t mbox_open(char *);
 void mbox_close(mailbox_t);
 int mbox_send(mailbox_t, void *, int);
 int mbox_recv(mailbox_t, void *, int);
+int mbox_act(mailbox_t mailbox, void *msg, int msg_length, int act_prefer);
 
 #endif

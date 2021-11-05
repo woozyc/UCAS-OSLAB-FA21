@@ -21,7 +21,7 @@ void semaphore_add_task1(void)
     pid_t pid_task1 = sys_spawn(&subtask1, NULL, AUTO_CLEANUP_ON_EXIT, 3);
     pid_t pid_task2 = sys_spawn(&subtask2, NULL, AUTO_CLEANUP_ON_EXIT, 3);
 
-    for (i = 0; i < 1; i++)
+    for (i = 0; i < 10; i++)
     {
         mthread_semaphore_down(&semaphore); // semaphore.value--
         // semaphore = 0
@@ -49,7 +49,7 @@ void semaphore_add_task2(void)
     int print_location = 5;
     // int sum_down = 0;
 
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < 20; i++)
     {
         mthread_semaphore_down(&semaphore); // semaphore.value--
         // semaphore = 0
@@ -71,7 +71,7 @@ void semaphore_add_task3(void)
     int print_location = 6;
     // int sum_down = 0;
 
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 30; i++)
     {
         mthread_semaphore_down(&semaphore); // semaphore.value--
         // semaphore = 0
