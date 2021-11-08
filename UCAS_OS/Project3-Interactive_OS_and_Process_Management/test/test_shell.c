@@ -122,16 +122,16 @@ static int resolve_command(int len){
 	cmd = input_buffer + j;
 	if(strlen(cmd) == 0)
 		return -1;
-	for( ; j < len - 1; j++){
-		if(input_buffer[j] == ' '){//split command
+	for( ; ; j++){
+		if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 			input_buffer[j] = 0;
 			j++;
 			break;
 		}
 	}
 	args = input_buffer + j++;
-	for( ; j < len - 1; j++){
-		if(input_buffer[j] == ' '){//split command
+	for( ; ; j++){
+		if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 			input_buffer[j] = 0;
 			j++;
 			break;
@@ -154,11 +154,11 @@ static int resolve_command(int len){
 			printf("    4: strserver 5: strgenerator 6: affinity 7: 3_mailbox\n");
 			return -1;
 		}
-		while(*args >= '0' && *args <= '9' && j <= len){
+		while(*args >= '0' && *args <= '9' && j <= len + 1){
 			shell_exec(itoa(args));
 			args = input_buffer + j++;
-			for( ; j < len; j++){
-				if(input_buffer[j] == ' '){//split command
+			for( ; ; j++){
+				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 					input_buffer[j] = 0;
 					j++;
 					break;
@@ -171,11 +171,11 @@ static int resolve_command(int len){
 			printf("  Usage: kill [pid], try \"ps\" to get pid.\n");
 			return -1;
 		}
-		while(*args >= '0' && *args <= '9' && j <= len){
+		while(*args >= '0' && *args <= '9' && j <= len + 1){
 			shell_kill(itoa(args));
 			args = input_buffer + j++;
-			for( ; j < len - 1; j++){
-				if(input_buffer[j] == ' '){//split command
+			for( ; ; j++){
+				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 					input_buffer[j] = 0;
 					j++;
 					break;
@@ -186,8 +186,8 @@ static int resolve_command(int len){
 	}else if(!strcmp(cmd, "taskset")){
 		if(!strcmp(args, "-p")){
 			args = input_buffer + j++;
-			for( ; j < len - 1; j++){
-				if(input_buffer[j] == ' '){//split command
+			for( ; ; j++){
+				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 					input_buffer[j] = 0;
 					j++;
 					break;
@@ -199,8 +199,8 @@ static int resolve_command(int len){
 			}
 			set_mask = itoa(args);
 			args = input_buffer + j++;
-			for( ; j < len - 1; j++){
-				if(input_buffer[j] == ' '){//split command
+			for( ; ; j++){
+				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 					input_buffer[j] = 0;
 					j++;
 					break;
@@ -220,8 +220,8 @@ static int resolve_command(int len){
 			}
 			set_mask = itoa(args);
 			args = input_buffer + j++;
-			for( ; j < len - 1; j++){
-				if(input_buffer[j] == ' '){//split command
+			for( ; ; j++){
+				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
 					input_buffer[j] = 0;
 					j++;
 					break;
