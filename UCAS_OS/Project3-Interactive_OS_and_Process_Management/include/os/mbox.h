@@ -17,6 +17,7 @@ typedef struct mailbox
     int tail;
     int head;
     int user_num;
+    list_head block_queue;
 } kernel_mbox_t;
 
 typedef struct{

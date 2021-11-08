@@ -45,6 +45,19 @@ int mbox_smp_up(smp_t *smp, int value)
     return i;
 }
 
+int mbox_act_up(smp_t *smp, kernel_mbox_t *mbox, int value)
+{
+    /* TO DO */
+    int i = 0;
+    while(mbox->block_queue.prev != &mbox->block_queue){
+    	i++;
+    	//inverse order
+        do_unblock(mbox->block_queue.next);
+    }
+    smp->value += value;
+    return i;
+}
+
 void do_mbox_init(kernel_mbox_t *mbox, char *name){
 	do_smp_init(&mbox->full, 0);
 	do_smp_init(&mbox->empty, MAX_MBOX_LENGTH);
@@ -52,6 +65,7 @@ void do_mbox_init(kernel_mbox_t *mbox, char *name){
 	mbox->head = 0;
 	mbox->tail = 0;
 	mbox->user_num = 1;
+	init_list_head(&mbox->block_queue);
 	kstrcpy((char *)&mbox->name, name);
 }
 int do_mbox_send(kernel_mbox_t *mbox, void *msg, int msg_length){
@@ -177,7 +191,7 @@ int kernel_mbox_act(int handle, void *msg, int msg_length, int act_prefer){
 				recv_succeed = mbox_try_down(&mbox->full, msg_length);
 			}
 			if(!send_succeed && !recv_succeed){
-				do_block(&((*current_running)->list), &mbox->empty.block_queue);
+				do_block(&((*current_running)->list), &mbox->block_queue);
 			}
 		}
 		if(send_succeed){
@@ -192,7 +206,7 @@ int kernel_mbox_act(int handle, void *msg, int msg_length, int act_prefer){
 				send_succeed = mbox_try_down(&mbox->empty, msg_length);
 			}
 			if(!send_succeed && !recv_succeed){
-				do_block(&((*current_running)->list), &mbox->full.block_queue);
+				do_block(&((*current_running)->list), &mbox->block_queue);
 			}
 		}
 		if(send_succeed){
@@ -217,7 +231,7 @@ int kernel_mbox_act(int handle, void *msg, int msg_length, int act_prefer){
     	    mbox->tail += msg_length;
     	}
 		do_mutex_lock_release(&mbox->lock);
-		mbox_smp_up(&mbox->full, msg_length);
+		mbox_act_up(&mbox->full, mbox, msg_length);
     	return 0;
     }else{//recv_succeed
 		len_1 = MAX_MBOX_LENGTH - mbox->head;
@@ -231,7 +245,7 @@ int kernel_mbox_act(int handle, void *msg, int msg_length, int act_prefer){
         	mbox->head += msg_length;
     	}
 		do_mutex_lock_release(&mbox->lock);
-		mbox_smp_up(&mbox->empty, msg_length);
+		mbox_act_up(&mbox->empty, mbox, msg_length);
     	return 1;
     }
 }
