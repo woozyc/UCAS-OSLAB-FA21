@@ -6,8 +6,13 @@
 #include <asm.h>
 #include <csr.h>
 
+/* maybe you need another stack for booting? */
+.equ boot_stack_top_base, 0x50202000
+
 .section ".entry_function","ax"
 ENTRY(_start)
+  /* TO DO: */
+  /* setup C environment for boot.c */
   /* Mask all interrupts */
   csrw CSR_SIE, zero
   csrw CSR_SIP, zero
@@ -40,16 +45,14 @@ clear_bss:
 clear_bss_done:
 
   /* setup C environment */
-  la tp, pid0_pcb_0
-  lw sp, pid0_stack_0
+  lw sp, boot_stack_top_base
   
   //core 1 finish
   j all_done
 
 secondary:
 
-  la tp, pid0_pcb_1
-  lw sp, pid0_stack_1
+  lw sp, boot_stack_top_base
   
 all_done:
   
@@ -57,7 +60,9 @@ all_done:
 
   la a0, riscv_dtb
   sd a1, (a0)
+  csrr a0, CSR_MHARTID 
 
+  /* this should never return */
   call boot_kernel
 
 loop:

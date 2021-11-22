@@ -12,10 +12,7 @@
 .equ kernel, 0x50201000
 
 // 2. kernel main address (jmp here to start kernel main!)
-.equ kernel_main, 0x50201000
-
-// 3. bootloader copy address (spare place for kernel)
-.equ copied_bootloader, 0x5e000000
+.equ kernel_main, 0x50301000
 
 .text
 .global main
@@ -96,7 +93,19 @@ runkernel:
 	// 2) task2 call BIOS read kernel in SD card and jump to kernel startx
 	lui a5, %hi(kernel)
 	addi a0, a5, %lo(kernel)
+	
+	//copy at most 64 sections everytime
+	mv s0, a1
+	li s1, 64
+copy:
+	blt a1, s1, directcopy
+	li a1, 64
+directcopy:
 	SBI_CALL SBI_SD_READ
+	addi a2, a2, 64
+	addi s0, s0, -64
+	addi a0, a0, 32768
+	bgtz s0, copy 
 	
 	
 	/*jump to kernel start, use jr instead of j, 

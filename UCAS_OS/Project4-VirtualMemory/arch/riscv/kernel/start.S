@@ -55,9 +55,6 @@ all_done:
   
   csrw CSR_SSCRATCH, x0
 
-  la a0, riscv_dtb
-  sd a1, (a0)
-
   call main
 
 loop:
