@@ -28,6 +28,7 @@
 #define MTHREAD_H_
 
 #include <stdint.h>
+#include <os.h>
 #include <stdatomic.h>
 #include <os/list.h>
 
@@ -56,4 +57,9 @@ int mthread_semaphore_up(int *handle);
 int mthread_semaphore_down(int *handle);
 int mthread_semaphore_destroy(int *handle);
 
+typedef pid_t mthread_t;
+int mthread_create(mthread_t *thread,
+                   void (*start_routine)(void*),
+                   void *arg);
+int mthread_join(mthread_t thread);
 #endif

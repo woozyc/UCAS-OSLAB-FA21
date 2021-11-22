@@ -10,7 +10,7 @@ static inline uint32_t atomic_swap(uint32_t val, ptr_t mem_addr)
     uint32_t ret;
     __asm__ __volatile__ (
         "amoswap.w.aqrl %0, %2, %1\n"
-        : "=r"(ret), "+A" (*(void*)mem_addr)
+        : "=r"(ret), "+A" (*(uint32_t*)mem_addr)
         : "r"(val)
         : "memory");
     return ret;
@@ -21,8 +21,31 @@ static inline uint64_t atomic_swap_d(uint64_t val, ptr_t mem_addr)
     uint64_t ret;
     __asm__ __volatile__ (
                           "amoswap.d.aqrl %0, %2, %1\n"
-                          : "=r"(ret), "+A" (*(void*)mem_addr)
+                          : "=r"(ret), "+A" (*(uint64_t*)mem_addr)
                           : "r"(val)
+                          : "memory");
+    return ret;
+}
+
+static inline int fetch_add(volatile void* obj, int arg)
+{
+    uint32_t ret;
+    __asm__ __volatile__ (
+                          "amoadd.w.aqrl %0, %2, %1\n"
+                          : "=r"(ret), "+A" (*(uint32_t*)obj)
+                          : "r"(arg)
+                          : "memory");
+    return ret;
+}
+
+static inline uint32_t atomic_load(volatile uint32_t* obj)
+{
+    uint32_t arg = UINT32_MAX;
+    uint32_t ret;
+    __asm__ __volatile__ (
+                          "amoand.w.aqrl %0, %2, %1\n"
+                          : "=r"(ret), "+A" (*(uint32_t*)obj)
+                          : "r"(arg)
                           : "memory");
     return ret;
 }
@@ -39,7 +62,7 @@ static inline uint32_t atomic_cmpxchg(uint32_t old_val, uint32_t new_val, ptr_t 
           "	bnez %1, 0b\n"
           "	fence rw, rw\n"
           "1:\n"
-          : "=&r" (ret), "=&r" (__rc), "+A" (*(void*)mem_addr)
+          : "=&r" (ret), "=&r" (__rc), "+A" (*(uint32_t*)mem_addr)
           : "rJ" (old_val), "rJ" (new_val)
           : "memory");
     return ret;
@@ -57,7 +80,7 @@ static inline uint64_t atomic_cmpxchg_d(uint64_t old_val, uint64_t new_val, ptr_
           "	bnez %1, 0b\n"
           "	fence rw, rw\n"
           "1:\n"
-          : "=&r" (ret), "=&r" (__rc), "+A" (*(void*)mem_addr)
+          : "=&r" (ret), "=&r" (__rc), "+A" (*(uint64_t*)mem_addr)
           : "rJ" (old_val), "rJ" (new_val)
           : "memory");
     return ret;

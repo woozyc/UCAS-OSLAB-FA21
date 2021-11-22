@@ -31,6 +31,11 @@
 #include <os/syscall.h>
 #include <os/syscall_number.h>
 #include <stdint.h>
+ 
+#define SCREEN_HEIGHT 80
+ 
+pid_t sys_exec(const char *file_name, int argc, char* argv[], spawn_mode_t mode);
+void sys_show_exec();
 #include <os.h>
 
 extern long invoke_syscall(long, long, long, long, long);
@@ -64,5 +69,9 @@ void sys_screen_clear();
 char sys_getchar();
 
 void sys_setmask(int mask, int pid);
+#define BINSEM_OP_LOCK 0 // mutex acquire
+#define BINSEM_OP_UNLOCK 1 // mutex release
 
+int binsemget(int key);
+int binsemop(int binsem_id, int op);
 #endif

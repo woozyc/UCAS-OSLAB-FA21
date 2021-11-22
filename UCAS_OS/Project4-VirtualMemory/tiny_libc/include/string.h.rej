@@ -1,0 +1,20 @@
+--- tiny_libc/include/string.h	2021-11-07 11:41:16.901268804 +0800
++++ tiny_libc/include/string.h	2020-11-15 19:29:28.000000000 +0800
+@@ -4,13 +4,13 @@
+ #include <stdint.h>
+ #include <stddef.h>
+ 
+-extern void memcpy(uint8_t *dest, const uint8_t *src, uint32_t len);
+-extern void memset(void *dest, uint8_t val, size_t len);
+-extern int memcmp(const void *ptr1, const void* ptr2, uint32_t num);
++extern void* memcpy(void *dest, const void *src, size_t len);
++extern void* memset(void *dest, int val, size_t len);
++extern int memcmp(const void *ptr1, const void* ptr2, size_t num);
+ 
+ extern int strcmp(const char *str1, const char *str2);
+ extern char *strcpy(char *dest, const char *src);
+ extern char *strcat(char *dest, const char *src);
+-extern int strlen(const char *src);
++extern size_t strlen(const char *src);
+ 
+ #endif /* STRING_H */

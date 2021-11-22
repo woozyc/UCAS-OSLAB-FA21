@@ -1,0 +1,16 @@
+--- tiny_libc/include/stdlib.h	2021-11-07 11:41:16.901268804 +0800
++++ tiny_libc/include/stdlib.h	2020-11-15 19:29:28.000000000 +0800
+@@ -2,11 +2,12 @@
+ #define STDLIB_H
+ 
+ #include <stdint.h>
+-#include <stddef.h>
+ 
+ #define RAND_MAX (INT32_MAX)
+ 
+ void srand(unsigned seed);
+ int rand();
+ 
++long int atol ( const char * str );
++
+ #endif /* STDLIB_H */

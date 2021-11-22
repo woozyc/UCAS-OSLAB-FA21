@@ -31,8 +31,9 @@
 
 #define MEM_SIZE 32
 #define PAGE_SIZE 4096 // 4K
-#define INIT_KERNEL_STACK 0x50500000lu
+#define INIT_KERNEL_STACK 0xffffffc051000000lu
 #define FREEMEM (INIT_KERNEL_STACK+4*PAGE_SIZE)
+#define USER_STACK_ADDR 0xf00010000lu
 
 /* Rounding; only works for n = power of two */
 #define ROUND(a, n)     (((((uint64_t)(a))+(n)-1)) & ~((n)-1))
@@ -43,5 +44,9 @@ extern ptr_t memCurr;
 extern ptr_t allocPage(int numPage);
 extern void freePage(ptr_t baseAddr, int numPage);
 extern void* kmalloc(size_t size);
+extern void share_pgtable(uintptr_t dest_pgdir, uintptr_t src_pgdir);
+extern uintptr_t alloc_page_helper(uintptr_t va, uintptr_t pgdir);
+uintptr_t shm_page_get(int key);
+void shm_page_dt(uintptr_t addr);
 
 #endif /* MM_H */

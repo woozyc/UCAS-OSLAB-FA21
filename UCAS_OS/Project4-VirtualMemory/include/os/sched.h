@@ -28,6 +28,8 @@
 
 #ifndef INCLUDE_SCHEDULER_H_
 #define INCLUDE_SCHEDULER_H_
+ 
+#include <context.h>
 
 #include <type.h>
 #include <os/list.h>
@@ -186,5 +188,7 @@ extern int do_waitpid(pid_t pid);
 extern void do_process_show();
 extern pid_t do_getpid();
 extern void do_setmask(int mask, int pid);
+extern pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode);
+extern void do_show_exec();
  
 #endif

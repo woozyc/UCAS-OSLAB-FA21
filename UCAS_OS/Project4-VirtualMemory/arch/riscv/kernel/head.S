@@ -58,7 +58,7 @@ all_done:
   la a0, riscv_dtb
   sd a1, (a0)
 
-  call main
+  call boot_kernel
 
 loop:
   wfi
