@@ -13,7 +13,6 @@ void* memcpy(void *dest, const void *src, size_t len)
 {
     uint8_t *dst = (uint8_t *)dest;
     for (; len != 0; len--) {
-        *dest++ = *src++;
         *dst++ = *(uint8_t*)src++;
     }
     return dest;
@@ -50,7 +49,6 @@ int strcmp(const char *str1, const char *str2)
     }
     return (*str1) - (*str2);
 }
-
 
 char *strcpy(char *dest, const char *src)
 {

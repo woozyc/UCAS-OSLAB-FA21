@@ -34,6 +34,7 @@
 #include <type.h>
 #include <os/list.h>
 #include <os/mm.h>
+#include <pgtable.h>
 
 #define NUM_MAX_TASK 16
 #define LIST_TO_PCB(list) ((pcb_t *)((char *)(list) - 40))

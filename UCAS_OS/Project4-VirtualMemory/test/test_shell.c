@@ -25,7 +25,7 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * */
 
-#include <test.h>
+//#include <test.h>
 #include <string.h>
 #include <os.h>
 #include <sys/syscall.h>
@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <screen.h>
+#include <sys/screen.h>
 
 /*struct task_info task_test_shell = {
     (uintptr_t)&test_shell, USER_PROCESS, P_4};
@@ -112,10 +112,26 @@ static void shell_kill(int pid){
 		printf("  Process kill error\n");
 }
 
+char *split_and_copy(char *dest, char *s, const char c)
+{
+    int len = strlen(s);
+    if (len == 0)
+        return NULL;
+    for (int i = 0; i < len; i++){
+        if (s[i] != c){
+            dest[i] = s[i];
+        }else{
+            dest[i] = 0;
+            return s + i + 1;
+        }
+    }
+    return NULL;
+}
+
 static int resolve_command(int len){
 	int j;
 	char *cmd, *args;
-	int set_mask, set_pid, set_taskid;
+	//int set_mask, set_pid, set_taskid;
 	for(j = 0; j < len - 1 && input_buffer[j] == ' '; j++);//find first none empty char
 	cmd = input_buffer + j;
 	if(strlen(cmd) == 0)
@@ -152,9 +168,10 @@ static int resolve_command(int len){
 			printf("    4: strserver 5: strgenerator 6: affinity 7: 3_mailbox\n");
 			return -1;
 		}
-        j = 0;
-        while ((parse = strtok(arg_buff[j++], args, ' ')) != NULL && j < 4);
-			shell_exec(arg_buff[0], j, arg_buff);
+        for(j = 0; args && j < 4; j++){
+			args = split_and_copy(arg_buff[j], args, ' ');
+			shell_exec(arg_buff[0], j, (char **)arg_buff);
+		}
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
 		if(*args < '0' || *args > '9'){

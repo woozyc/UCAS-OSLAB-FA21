@@ -8,9 +8,10 @@ char getchar(void){
 		;
 	return c;
 }
-
+/*
 void putchar(char c){
 	char c_str[2] = {0};
 	c_str[0] = c;
 	sys_serial_write(c_str);
 }
+*/

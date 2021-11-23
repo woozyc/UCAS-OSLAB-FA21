@@ -28,11 +28,12 @@
 #ifndef INCLUDE_SYSCALL_H_
 #define INCLUDE_SYSCALL_H_
 
-#include <os/syscall.h>
+#include <type.h>
+#include <sys/os_type.h>
 #include <os/syscall_number.h>
 #include <stdint.h>
  
-#define SCREEN_HEIGHT 80
+//#define SCREEN_HEIGHT 80
  
 pid_t sys_exec(const char *file_name, int argc, char* argv[], spawn_mode_t mode);
 void sys_show_exec();

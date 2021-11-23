@@ -97,6 +97,7 @@ runkernel:
 	//copy at most 64 sections everytime
 	mv s0, a1
 	li s1, 64
+	li s2, 32768
 copy:
 	blt a1, s1, directcopy
 	li a1, 64
@@ -104,7 +105,7 @@ directcopy:
 	SBI_CALL SBI_SD_READ
 	addi a2, a2, 64
 	addi s0, s0, -64
-	addi a0, a0, 32768
+	add a0, a0, s2
 	bgtz s0, copy 
 	
 	
