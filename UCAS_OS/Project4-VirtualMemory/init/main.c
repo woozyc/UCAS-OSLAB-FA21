@@ -101,18 +101,18 @@ static void init_pcb()
      /* initialize all of your pcb and add them into ready_queue     */
      init_list_head(&ready_queue);
      int i;
-     //init a pcb of a task
+     //init shell pcb
      pcb[0].pid = 1;
      //init pgtable
 	 pcb[0].pgdir = allocPage(1);
+     clear_pgdir(pcb[0].pgdir);
 	 kmemcpy((char *)pcb[0].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
-	 //TODO:
-     pcb[0].kernel_sp = ;
-     pcb[0].user_sp = ;
-     ptr_t entry_point = ;
-     
+     pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;
+     pcb[0].user_sp = USER_STACK_ADDR;
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
+     ptr_t entry_point = (ptr_t)load_elf(_elf___test_test_shell_elf, _length___test_test_shell_elf, pcb[0].pgdir, alloc_page_helper);
+     
      pcb[0].preempt_count = 0;
      pcb[0].type = USER_PROCESS;
      pcb[0].status = TASK_READY;

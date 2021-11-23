@@ -35,7 +35,7 @@
 
 #include <screen.h>
 
-struct task_info task_test_shell = {
+/*struct task_info task_test_shell = {
     (uintptr_t)&test_shell, USER_PROCESS, P_4};
 
 
@@ -59,10 +59,11 @@ static struct task_info *test_tasks[16] = {&task_test_waitpid,
                                            &strgenerator_task,
                                            &task_test_affinity,
                                            &task_mailbox_test};
-static int num_test_tasks = 8;
+static int num_test_tasks = 8;*/
 
 
 static char input_buffer[SCREEN_WIDTH];
+static char arg_buff[8][32] = {0};//for exec
 static char commandhead[] = "> root@UCAS_OS: ";
 
 static void shell_init_display(void){
@@ -86,20 +87,17 @@ static void shell_clear(){
 
 static void shell_help(){
 	printf("  [MANUAL]\n");
-	printf("  ps            : process show\n      display all the processes and their statuses\n");
-	printf("  clear         : clear screen\n      clear screen and command shell\n");
-	printf("  exec [task_id]: execute task\n      start running certain test task\n");
-	printf("  kill [pid]    : kill process\n      kill a process\n");
-	printf("  taskset    [mask] [task_id] : start a task with specified hart mask\n");
-	printf("          -p [mask] [pid]     : set process hart mask\n");
+	printf("  ps         : process show\n      display all the processes and their statuses\n");
+	printf("  clear      : clear screen\n      clear screen and command shell\n");
+	printf("  exec [task_id] [arg1]...:\n      execute task, start running certain test task\n");
+	printf("  kill [pid] : kill process\n      kill a process\n");
+	//printf("  taskset    [mask] [task_id] : start a task with specified hart mask\n");
+	//printf("          -p [mask] [pid]     : set process hart mask\n");
 }
 
-static void shell_exec(int id){
-	if(id < 0 || id >= num_test_tasks){
-		printf("  No such task to execute\n");
-		return ;
-	}
-	pid_t pid = sys_spawn(test_tasks[id], NULL, AUTO_CLEANUP_ON_EXIT, 3);
+static void shell_exec(char *name, int argc, char **argv){
+	pid_t pid = sys_exec(name, argc, argv, AUTO_CLEANUP_ON_EXIT);
+	//pid_t pid = sys_spawn(test_tasks[id], NULL, AUTO_CLEANUP_ON_EXIT, 3);
 	if(pid > 0)
 		printf("  Task executed, pid = %d\n", pid);
 	else
@@ -154,17 +152,9 @@ static int resolve_command(int len){
 			printf("    4: strserver 5: strgenerator 6: affinity 7: 3_mailbox\n");
 			return -1;
 		}
-		while(*args >= '0' && *args <= '9' && j <= len + 1){
-			shell_exec(itoa(args));
-			args = input_buffer + j++;
-			for( ; ; j++){
-				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
-					input_buffer[j] = 0;
-					j++;
-					break;
-				}
-			}
-		}
+        j = 0;
+        while ((parse = strtok(arg_buff[j++], args, ' ')) != NULL && j < 4);
+			shell_exec(arg_buff[0], j, arg_buff);
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
 		if(*args < '0' || *args > '9'){
@@ -183,7 +173,7 @@ static int resolve_command(int len){
 			}
 		}
 		return 5;
-	}else if(!strcmp(cmd, "taskset")){
+	}/*else if(!strcmp(cmd, "taskset")){
 		if(!strcmp(args, "-p")){
 			args = input_buffer + j++;
 			for( ; ; j++){
@@ -236,13 +226,13 @@ static int resolve_command(int len){
 			printf("  Task %d executed, mask = %d\n", set_taskid, set_mask);
 		}
 		return 6;
-	}else{
+	}*/else{
 		printf("  Unknown command, try \"help\"\n");
 		return 0;
 	}
 }
 
-void test_shell()
+int main()
 {
     char c;
     int i;
@@ -284,4 +274,5 @@ void test_shell()
         // TO DO: ps, exec, kill, clear
         resolve_command(i);
     }
+    return 0;
 }
