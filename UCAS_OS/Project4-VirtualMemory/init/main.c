@@ -106,12 +106,17 @@ static void init_pcb()
      //init pgtable
 	 pcb[0].pgdir = allocPage(1);
      clear_pgdir(pcb[0].pgdir);
+     //copy kernel pgtable
 	 kmemcpy((char *)pcb[0].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
-     pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;
-     pcb[0].user_sp = USER_STACK_ADDR;
+	 //set stack va
+     pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
+     pcb[0].user_sp = USER_STACK_ADDR;//user va
+     //map user stack to a pa
+     alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir)
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
-     ptr_t entry_point = (ptr_t)load_elf(_elf___test_test_shell_elf, _length___test_test_shell_elf, pcb[0].pgdir, alloc_page_helper);
+     ptr_t entry_point = (ptr_t)load_elf(elf_files[0].file_content,
+     					 *elf_files[0].file_length, pcb[0].pgdir, alloc_page_helper);
      
      pcb[0].preempt_count = 0;
      pcb[0].type = USER_PROCESS;

@@ -152,6 +152,9 @@ void do_scheduler(void)
    		last_run->status = TASK_READY;
     	list_add(&(last_run->list), &ready_queue);
     }
+    //switch pgdir
+    set_satp(SATP_MODE_SV39, (*current_running)->pid, (next_running->pgdir & VA_MASK) >> NORMAL_PAGE_SHIFT);
+    local_flush_tlb_all();
     
     //switch
     switch_to(last_run, (*current_running), switch_to_no_store);
@@ -281,7 +284,7 @@ void do_ps(void){
 		}
 	}
 }
-
+/*
 pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	//TO DO:
@@ -311,7 +314,7 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 	}
 	prints("> [SPAWN] Pcb allocation error\n");
 	return -1;
-}
+}*/
 
 int do_kill(pid_t pid){
 	//TO DO:
@@ -384,4 +387,58 @@ pid_t do_getpid(void){
 void do_setmask(int mask, int pid){
 	//TO DO:
 	pcb[pid-1].hart_mask = mask;
+}
+
+int name_to_id(char *file_name){
+	for (int i = 1; i < 5; i++)
+        if (kstrcmp(file_name, elf_files[i].file_name) == 0)
+            return i;
+    return -1;
+}
+
+pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
+	//TO DO:
+	int i;
+	int task_id = name_to_id(file_name);
+	if(task_id <= 0){
+		prints("> [EXEC] File dose not exist\n");
+		return -1;
+	}
+	for(i = 0; i < NUM_MAX_TASK; i++){
+		if(pcb[i].status == TASK_EXITED){
+     		pcb[i].preempt_count = 0;
+    		pcb[i].type = ;
+     		pcb[i].cursor_x = 0;
+     		pcb[i].cursor_y = 0;
+     		pcb[i].wake_up_time = 0;
+     		pcb[i].priority = ;
+     		pcb[i].sched_time = get_ticks();
+     		pcb[i].mode = mode;
+     		//alloc pgdir
+	 		pcb[i].pgdir = allocPage(1);
+     		clear_pgdir(pcb[i].pgdir);
+     		//copy kernel pgdir
+	 		kmemcpy((char *)pcb[i].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
+	 		//alloc stack
+     		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
+     		pcb[i].user_sp = USER_STACK_ADDR;
+     		//map user stack to a pa
+     		alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir)
+     		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
+     		pcb[i].user_stack_base = pcb[i].user_sp;
+     		pcb[i].hart_mask = hart_mask ? hart_mask : (*current_running)->hart_mask;
+     		ptr_t entry_point = (ptr_t)load_elf(elf_files[task_id].file_content,
+     							*elf_files[task_id].file_length, pcb[i].pgdir, alloc_page_helper);
+			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc, argv);
+     		init_list_head(&(pcb[i].wait_list));
+     		init_list_head(&(pcb[i].lock_list));
+     		//ready to run
+     		pcb[i].status = TASK_READY;
+     		list_add(&(pcb[i].list), &ready_queue);
+     		return pcb[i].pid;
+		}
+	}
+	prints("> [EXEC] Pcb allocation error\n");
+	return -1;
 }
