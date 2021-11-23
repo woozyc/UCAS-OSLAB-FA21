@@ -21,6 +21,7 @@ pcb_t pid0_pcb_0 = {
     .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_0),//fake user_stack, pid0 always run in s mode
+    .pgdir = 0x5e000000,
     .preempt_count = 0
 };
 const ptr_t pid0_stack_1 = INIT_KERNEL_STACK + 4 * PAGE_SIZE;
@@ -29,6 +30,7 @@ pcb_t pid0_pcb_1 = {
     .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + 3 * PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_1),
+    .pgdir = 0x5e000000,
     .preempt_count = 0
 };
 

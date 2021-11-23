@@ -139,6 +139,9 @@ typedef struct pcb
     /* running hart resitriction */
     int hart_mask;
     
+    /* PGDIR */
+    PTE *pgdir;
+    
 } pcb_t;
 
 /* task information, used to init PCB */

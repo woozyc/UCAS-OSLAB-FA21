@@ -38,6 +38,9 @@
 #include <os/smp.h>
 #include <os/mbox.h>
 #include <test.h>
+#include <pgtable.h>
+#include <user_programs.h>
+#include <os/elf.h>
 
 #include <sys/syscall.h>
 #include <csr.h>
@@ -47,7 +50,7 @@ extern void __global_pointer$();
 
 void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,
-    pcb_t *pcb, ptr_t args)
+    pcb_t *pcb, ptr_t argc, ptr_t argv)
 {
     regs_context_t *pt_regs =
         (regs_context_t *)(kernel_stack - sizeof(regs_context_t));
@@ -67,7 +70,8 @@ void init_pcb_stack(
     pt_regs->regs[2] = (reg_t)user_stack;
     pt_regs->regs[3] = (reg_t)__global_pointer$;
     pt_regs->regs[4] = (reg_t)pcb;
-    pt_regs->regs[10] = (reg_t)args;
+    pt_regs->regs[10] = (reg_t)argc;
+    pt_regs->regs[11] = (reg_t)argv;
     //csr registers
     pt_regs->sepc = entry_point;
     pt_regs->sstatus = SR_SPIE & ~SR_SPP;
@@ -97,38 +101,42 @@ static void init_pcb()
      /* initialize all of your pcb and add them into ready_queue     */
      init_list_head(&ready_queue);
      int i;
-     struct task_info *task;
      //init a pcb of a task
-     task = &task_test_shell;
      pcb[0].pid = 1;
-     pcb[0].kernel_sp = allocPage(1);
-     pcb[0].user_sp = allocPage(1);
+     //init pgtable
+	 pcb[0].pgdir = allocPage(1);
+	 kmemcpy((char *)pcb[0].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
+	 //TODO:
+     pcb[0].kernel_sp = ;
+     pcb[0].user_sp = ;
+     ptr_t entry_point = ;
+     
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
      pcb[0].preempt_count = 0;
-     pcb[0].type = task->type;
+     pcb[0].type = USER_PROCESS;
      pcb[0].status = TASK_READY;
      pcb[0].cursor_x = 0;
      pcb[0].cursor_y = 0;
      pcb[0].wake_up_time = 0;
-     pcb[0].priority = task->priority;
+     pcb[0].priority = P_4;
      pcb[0].sched_time = get_ticks();
      pcb[0].mode = AUTO_CLEANUP_ON_EXIT;
      pcb[0].hart_mask = 3;
      init_list_head(&(pcb[0].wait_list));
      init_list_head(&(pcb[0].lock_list));
      //init pcb stack
-     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, task->entry_point, pcb, (ptr_t)NULL);
+     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, entry_point, pcb, (ptr_t)NULL, (ptr_t)NULL);
      //add to ready_queue
      list_add(&(pcb[0].list), &ready_queue);
      //init other pcbs
      for(i = 1; i < NUM_MAX_TASK; i++){
      	pcb[i].status = TASK_EXITED;
      	pcb[i].pid = i + 1;
-     	pcb[i].kernel_sp = allocPage(1);
-     	pcb[i].user_sp = allocPage(1);
-     	pcb[i].kernel_stack_base = pcb[i].kernel_sp;
-     	pcb[i].user_stack_base = pcb[i].user_sp;
+     	//pcb[i].kernel_sp = allocPage(1);
+     	//pcb[i].user_sp = allocPage(1);
+     	//pcb[i].kernel_stack_base = pcb[i].kernel_sp;
+     	//pcb[i].user_stack_base = pcb[i].user_sp;
      	init_list_head(&(pcb[i].wait_list));
      	init_list_head(&(pcb[i].lock_list));
      }
@@ -208,6 +216,7 @@ int main()
     // init Process Control Block (-_-!)
     if (get_current_cpu_id() == 0){
     	lock_kernel();
+        local_flush_tlb_all();
 	    init_pcb();
     	current_running = &current_running_0;
     	printk("> [INIT] PCB initialization succeeded.\n\r");
