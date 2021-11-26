@@ -164,7 +164,7 @@ static inline uintptr_t load_elf(
         phdr = (Elf64_Phdr *)ptr_ph_table;
 
         if (phdr->p_type == PT_LOAD) {
-            /* TODO: */
+            /* TO DO: */
             for (i = 0; i < phdr->p_memsz; i += NORMAL_PAGE_SIZE) {
                 if (i < phdr->p_filesz) {
                     unsigned char *bytes_of_page =

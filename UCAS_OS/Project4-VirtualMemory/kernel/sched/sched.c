@@ -78,56 +78,6 @@ void do_scheduler(void)
     last_run = (*current_running);
     (*current_running)->sched_time = get_ticks();
     
-    /*
-    if((*current_running)->status == TASK_EXITED){//has been killed by another core
-    	list_del(&((*current_running)->list));
-		while((*current_running)->wait_list.next != &((*current_running)->wait_list))
-			do_unblock((*current_running)->wait_list.next);
-		while((*current_running)->lock_list.next != &((*current_running)->lock_list))
-			do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
-		*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
-		switch_to_no_store = 1;
-    }else{
-    	// TO DO schedule
-    	// Modify the current_running pointer.
-    	//assert_supervisor_mode();
-    	last_run = (*current_running);
-    	//modified to use priorities
-    	(*current_running)->sched_time = get_ticks();
-    	//enqueue to head.next, dequeue from head.prev
-    	//list_node_t *last_list = ready_queue.prev;
-    	//modified to use priorities
-    	list_node_t *last_list = find_next_proc(hart_id);
-    	if(!last_list){//no job to run
-    		if((*current_running)->pid != 0 && (*current_running)->status != TASK_RUNNING){
-	    		*current_running = hart_id ? &(pid0_pcb_1) : &(pid0_pcb_0);
-    			switch_to(last_run, (*current_running), 0);
-    		}
-    		return ;
-   		}else{
-   			list_del(last_list);
-   			(*current_running) = LIST_TO_PCB(last_list);
-    	}
-    	(*current_running)->status = TASK_RUNNING;
-    	if(last_run->pid != 0 && last_run->status == TASK_RUNNING){//do not enqueue pid 0
-    		last_run->status = TASK_READY;
-    		list_add(&(last_run->list), &ready_queue);
-    	}
-    	//save screen cursor
-    	//last_run->cursor_x = screen_cursor_x;
-    		//last_run->cursor_y = screen_cursor_y;
-	
-    	// restore the current_runnint's cursor_x and cursor_y
-    	vt100_move_cursor((*current_running)->cursor_x,
-    	                  (*current_running)->cursor_y);
-    	//screen_cursor_x = current_running->cursor_x;
-    	//screen_cursor_y = current_running->cursor_y;
-    }
-    
-    // TO DO: switch_to current_running
-    switch_to(last_run, (*current_running), switch_to_no_store);
-    */
-    
     //find next process to run
     list_node_t *last_list = find_next_proc(hart_id);
     if(!last_list){										//ready_queue empty
@@ -155,8 +105,7 @@ void do_scheduler(void)
     	list_add(&(last_run->list), &ready_queue);
     }
     //switch pgdir
-    set_satp(SATP_MODE_SV39, (*current_running)->pid,
-    		 (((*current_running)->pgdir) & VA_MASK) >> NORMAL_PAGE_SHIFT);
+    set_satp(SATP_MODE_SV39, (*current_running)->pid, kva2pa((*current_running)->pgdir) >> NORMAL_PAGE_SHIFT);
     local_flush_tlb_all();
     
     //switch

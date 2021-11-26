@@ -30,7 +30,8 @@ void shm_page_dt(uintptr_t addr)
 /* this is used for mapping kernel virtual address into user page table */
 void share_pgtable(uintptr_t dest_pgdir, uintptr_t src_pgdir)
 {
-    // TODO:
+    // TO DO:
+    kmemcpy((uint8_t *)dest_pgdir, (uint8_t *)src_pgdir, (uint32_t)PAGE_SIZE);
 }
 
 /* allocate physical page for `va`, mapping it into `pgdir`,

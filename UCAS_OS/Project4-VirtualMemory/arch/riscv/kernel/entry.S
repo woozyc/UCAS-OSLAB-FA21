@@ -251,6 +251,8 @@ no_store:
   //tp should stay the same as current_running
   mv tp, a1
   csrw CSR_SSCRATCH, tp
+  li t0, SR_SUM
+  csrs CSR_SSTATUS, t0
   //jump to current_running's entry point
   jr ra
 ENDPROC(switch_to)
@@ -262,6 +264,9 @@ ENTRY(ret_from_exception)
   RESTORE_CONTEXT
   //restore user process scratch
   csrw CSR_SSCRATCH, tp
+  
+  li t0, SR_SUM
+  csrs CSR_SSTATUS, t0
   sret
 ENDPROC(ret_from_exception)
 
@@ -272,6 +277,8 @@ ENTRY(exception_handler_entry)
 
   csrw CSR_SSCRATCH, x0
 
+  li t0, SR_SUM
+  csrs CSR_SSTATUS, t0
   /* Load the global pointer */
   .option push
   .option norelax

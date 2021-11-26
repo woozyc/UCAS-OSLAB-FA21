@@ -74,7 +74,7 @@ void init_pcb_stack(
     pt_regs->regs[11] = (reg_t)argv;
     //csr registers
     pt_regs->sepc = entry_point;
-    pt_regs->sstatus = SR_SPIE & ~SR_SPP;
+    pt_regs->sstatus = SR_SPIE & ~SR_SPP | SR_SUM;
     pt_regs->sbadaddr = 0;
     pt_regs->scause = 0;
 
@@ -88,11 +88,8 @@ void init_pcb_stack(
     	switchto_regs->regs[i] = 0;
     }
     //init ra and sp, while other general purpose regs stay zero
-    if (pcb->type == USER_PROCESS || pcb->type == USER_THREAD)
-        switchto_regs->regs[0] = (reg_t)&ret_from_exception;
-    else
-	    switchto_regs->regs[0] = (reg_t)entry_point;
-    switchto_regs->regs[1] = (reg_t)user_stack;
+    switchto_regs->regs[0] = (reg_t)&ret_from_exception;
+    switchto_regs->regs[1] = (reg_t)switchto_regs;
     pcb->kernel_sp = (reg_t)switchto_regs;
 }
 
@@ -107,7 +104,7 @@ static void init_pcb()
 	 pcb[0].pgdir = allocPage(1);
      clear_pgdir(pcb[0].pgdir);
      //copy kernel pgtable
-	 kmemcpy((uint8_t *)pcb[0].pgdir, (uint8_t *)pa2kva(0x5e000000), PAGE_SIZE);
+	 share_pgtable(pcb[0].pgdir, pa2kva(PGDIR_PA));
 	 //set stack va
      pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
      pcb[0].user_sp = USER_STACK_ADDR;//user va
@@ -116,7 +113,7 @@ static void init_pcb()
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
      ptr_t entry_point = (ptr_t)load_elf(elf_files[0].file_content,
-     					 *elf_files[0].file_length, pcb[0].pgdir, alloc_page_helper);
+     					 elf_files[0].file_length, pcb[0].pgdir, alloc_page_helper);
      
      pcb[0].preempt_count = 0;
      pcb[0].type = USER_PROCESS;

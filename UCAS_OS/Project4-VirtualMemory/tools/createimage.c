@@ -37,7 +37,6 @@ int main(int argc, char **argv)
     /* process command line options */
     options.vm = 0;
     options.extended = 0;
-    printf("sizeof char: %d\n", sizeof(char));
     while ((argc > 1) && (argv[1][0] == '-') && (argv[1][1] == '-')) {
         char *option = &argv[1][2];
 
