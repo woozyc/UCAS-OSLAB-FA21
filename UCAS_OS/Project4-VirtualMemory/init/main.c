@@ -253,10 +253,10 @@ int main()
     	//printk("> [INIT] SCREEN initialization skipped.\n\r");
 		
 		//wake up slave core
-		disable_softwareint();
-    	sbi_send_ipi((unsigned long *)0);
-    	clear_softwareint();
-    	enable_softwareint();
+		//disable_softwareint();
+    	//sbi_send_ipi((unsigned long *)0);
+    	//clear_softwareint();
+    	//enable_softwareint();
     	
 	}else{//core 2 init
 		current_running = &current_running_1;

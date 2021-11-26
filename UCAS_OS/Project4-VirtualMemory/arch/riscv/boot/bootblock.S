@@ -9,7 +9,7 @@
 .equ os_num_loc, 0x502001fc
 
 // 1. kernel address (move kernel to here ~)
-.equ kernel, 0x50201000
+.equ kernel, 0x50301000
 
 // 2. kernel main address (jmp here to start kernel main!)
 .equ kernel_main, 0x50301000
@@ -102,7 +102,9 @@ copy:
 	blt a1, s1, directcopy
 	li a1, 64
 directcopy:
+	mv s3, a0
 	SBI_CALL SBI_SD_READ
+	mv a0, s3
 	addi a2, a2, 64
 	addi s0, s0, -64
 	add a0, a0, s2

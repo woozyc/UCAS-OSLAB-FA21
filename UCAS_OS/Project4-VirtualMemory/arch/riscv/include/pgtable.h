@@ -89,18 +89,20 @@ static inline void set_satp(
 #define PPN_BITS 9lu
 #define NUM_PTE_ENTRY (1 << PPN_BITS)
 
+#define KVA_OFFSET 0xffffffc000000000lu
+
 typedef uint64_t PTE;
 
 static inline uintptr_t kva2pa(uintptr_t kva)
 {
     // TO DO:
-    return kva & VA_MASK;
+    return kva - KVA_OFFSET;
 }
 
 static inline uintptr_t pa2kva(uintptr_t pa)
 {
     // TO DO:
-    return pa | ~VA_MASK;
+    return pa  + KVA_OFFSET;
 }
 
 static inline uint64_t get_pa(PTE entry)

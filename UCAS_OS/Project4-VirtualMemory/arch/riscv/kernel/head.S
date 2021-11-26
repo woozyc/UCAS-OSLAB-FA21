@@ -45,7 +45,7 @@ clear_bss:
 clear_bss_done:
 
   /* setup C environment */
-  //li sp, boot_stack_top_base
+  li sp, boot_stack_top_base
   
   //core 1 finish
   j all_done
@@ -60,7 +60,7 @@ all_done:
 
   //la a0, riscv_dtb
   //sd a1, (a0)
-  //csrr a0, CSR_MHARTID 
+  csrr a0, CSR_MHARTID 
 
   /* this should never return */
   call boot_kernel

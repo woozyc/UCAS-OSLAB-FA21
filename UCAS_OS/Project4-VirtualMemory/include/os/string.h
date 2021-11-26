@@ -30,6 +30,7 @@
 
 #include <type.h>
 
+void memcpy(uint8_t *dest, const uint8_t *src, uint32_t len);
 void kmemcpy(uint8_t *dest, const uint8_t *src, uint32_t len);
 void kmemset(void *dest, uint8_t val, uint32_t len);
 void kbzero(void *dest, uint32_t len);

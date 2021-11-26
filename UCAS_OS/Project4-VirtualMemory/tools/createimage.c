@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     /* process command line options */
     options.vm = 0;
     options.extended = 0;
+    printf("sizeof char: %d\n", sizeof(char));
     while ((argc > 1) && (argv[1][0] == '-') && (argv[1][1] == '-')) {
         char *option = &argv[1][2];
 
@@ -181,10 +182,10 @@ static void write_os_size(int nbytes, FILE * img, int count)
 	//save pointer
 	long pointer = ftell(img);
 	int sec = nbytes / 512;
-	char sections[2] = {sec / 256 , sec % 256};//half word
+	char sections[4] = {(char)(sec % 256), (char)(sec / 256)};//word
     if(count){//not bootloader
-    	fseek(img, OSSIZE_LOC_BASE - 4 * count, SEEK_SET);//0x502001fc - 4, - 8...
-    	fwrite(sections, 2L, 1, img);
+    	fseek(img, OSSIZE_LOC_BASE - 4 * count + 1, SEEK_SET);//0x502001fc - 4, - 8...
+    	fwrite(&sec, sizeof(sec), 1, img);
     }
     if(count)
 	    printf("\tkernel %2d size: %d\n", count, sec);
