@@ -273,17 +273,18 @@ ENDPROC(ret_from_exception)
 ENTRY(exception_handler_entry)
   SAVE_CONTEXT
   
+  /* Load the global pointer */
+  .option push
+  .option norelax
+  la gp, __global_pointer$
+  .option pop
+  
   call lock_kernel
 
   csrw CSR_SSCRATCH, x0
 
   li t0, SR_SUM
   csrs CSR_SSTATUS, t0
-  /* Load the global pointer */
-  .option push
-  .option norelax
-  la gp, __global_pointer$
-  .option pop
 
   /* TO DO: load ret_from_exception into $ra
    * so that we can return to ret_from_exception

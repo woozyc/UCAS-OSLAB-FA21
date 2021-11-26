@@ -44,6 +44,10 @@ void handle_int(regs_context_t *regs, uint64_t interrupt, uint64_t cause)
     reset_irq_timer();
 }
 
+void handle_pagefault(regs_context_t *regs, uint64_t stval, uint64_t cause){
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
+	alloc_page_helper(stval, (*current_running)->pgdir);
+}
 void init_exception()
 {
     /* TO DO: initialize irq_table and exc_table */
@@ -56,6 +60,9 @@ void init_exception()
 		exc_table[i] = &handle_other;
 	}
 	exc_table[EXCC_SYSCALL] = &handle_syscall;
+	exc_table[EXCC_INST_PAGE_FAULT] = &handle_pagefault;
+	exc_table[EXCC_LOAD_PAGE_FAULT] = &handle_pagefault;
+	exc_table[EXCC_STORE_PAGE_FAULT] = &handle_pagefault;
 
     setup_exception();
 }
