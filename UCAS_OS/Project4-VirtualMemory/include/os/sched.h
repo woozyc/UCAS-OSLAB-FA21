@@ -39,26 +39,6 @@
 #define NUM_MAX_TASK 16
 #define LIST_TO_PCB(list) ((pcb_t *)((char *)(list) - 40))
 
-/* used to save register infomation */
-typedef struct regs_context
-{
-    /* Saved main processor registers.*/
-    reg_t regs[32];
-
-    /* Saved special registers. */
-    reg_t sstatus;
-    reg_t sepc;
-    reg_t sbadaddr;
-    reg_t scause;
-} regs_context_t;
-
-/* used to save register infomation in switch_to */
-typedef struct switchto_context
-{
-    /* Callee saved registers.*/
-    reg_t regs[14];
-} switchto_context_t;
-
 typedef enum {
     TASK_BLOCKED,
     TASK_RUNNING,
@@ -141,7 +121,7 @@ typedef struct pcb
     int hart_mask;
     
     /* PGDIR */
-    PTE *pgdir;
+    uintptr_t pgdir;
     
 } pcb_t;
 
@@ -171,7 +151,7 @@ extern const ptr_t pid0_stack_1;
 
 void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,
-    pcb_t *pcb, ptr_t args);
+    pcb_t *pcb, ptr_t argc, ptr_t argv);
 
 extern void switch_to(pcb_t *prev, pcb_t *next, int no_store);
 void do_scheduler(void);
@@ -185,7 +165,7 @@ void do_priority();
 int do_fork();
 
 void do_ps(void);
-//extern pid_t do_spawn(task_info_t *task, void* arg, spawn_mode_t mode, int hart_mask);
+extern pid_t do_spawn(task_info_t *task, void* arg, spawn_mode_t mode, int hart_mask);
 extern void do_exit(void);
 extern int do_kill(pid_t pid);
 extern int do_waitpid(pid_t pid);

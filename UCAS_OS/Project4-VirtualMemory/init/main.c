@@ -37,12 +37,12 @@
 #include <os/lock.h>
 #include <os/smp.h>
 #include <os/mbox.h>
-#include <test.h>
+//#include <test.h>
 #include <pgtable.h>
 #include <user_programs.h>
 #include <os/elf.h>
 
-#include <sys/syscall.h>
+//#include <sys/syscall.h>
 #include <csr.h>
 
 extern void ret_from_exception();
@@ -66,7 +66,7 @@ void init_pcb_stack(
     for(i = 0; i < 32; i++){
     	pt_regs->regs[i] = 0;
     }
-    pt_regs->regs[1] = (reg_t)&sys_exit;
+    //pt_regs->regs[1] = (reg_t)&sys_exit;
     pt_regs->regs[2] = (reg_t)user_stack;
     pt_regs->regs[3] = (reg_t)__global_pointer$;
     pt_regs->regs[4] = (reg_t)pcb;
@@ -107,12 +107,12 @@ static void init_pcb()
 	 pcb[0].pgdir = allocPage(1);
      clear_pgdir(pcb[0].pgdir);
      //copy kernel pgtable
-	 kmemcpy((char *)pcb[0].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
+	 kmemcpy((uint8_t *)pcb[0].pgdir, (uint8_t *)pa2kva(0x5e000000), PAGE_SIZE);
 	 //set stack va
      pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
      pcb[0].user_sp = USER_STACK_ADDR;//user va
      //map user stack to a pa
-     alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir)
+     alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir);
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
      ptr_t entry_point = (ptr_t)load_elf(elf_files[0].file_content,
@@ -210,6 +210,12 @@ static void init_syscall(void)
     syscall[SYSCALL_MAILBOX_ACT] = (long int (*)())&kernel_mbox_act;
     
     syscall[SYSCALL_SETMASK] = (long int (*)())&do_setmask;
+    syscall[SYSCALL_EXEC] = (long int (*)())&do_exec;
+    syscall[SYSCALL_SHMPGGET] = (long int (*)())&shm_page_get;
+    syscall[SYSCALL_SHMPGEDT] = (long int (*)())&shm_page_dt;
+    
+    syscall[SYSCALL_BINSHMPGET] = (long int (*)())&do_binsemget;
+    syscall[SYSCALL_BINSHMPOP] = (long int (*)())&do_binsemop;
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }

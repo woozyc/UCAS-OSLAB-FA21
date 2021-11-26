@@ -28,7 +28,7 @@
 #ifndef INCLUDE_SYSCALL_H_
 #define INCLUDE_SYSCALL_H_
 
-#include <type.h>
+//#include <type.h>
 #include <sys/os_type.h>
 #include <os/syscall_number.h>
 #include <stdint.h>
@@ -70,6 +70,11 @@ void sys_screen_clear();
 char sys_getchar();
 
 void sys_setmask(int mask, int pid);
+
+pid_t sys_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode);
+void* shmpageget(int key);
+void shmpagedt(void *addr);
+
 #define BINSEM_OP_LOCK 0 // mutex acquire
 #define BINSEM_OP_UNLOCK 1 // mutex release
 

@@ -143,7 +143,7 @@ static inline void set_attribute(PTE *entry, uint64_t bits)
 static inline void clear_pgdir(uintptr_t pgdir_addr)
 {
     // TO DO:
-    uintptr_t pgdir = pgdir_addr;
+    uint8_t *pgdir = (uint8_t *)pgdir_addr;
     for (int i = 0; i < 512; i++, pgdir++)
         *pgdir = 0;
 }

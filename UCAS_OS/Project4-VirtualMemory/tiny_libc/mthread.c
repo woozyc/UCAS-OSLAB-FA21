@@ -86,3 +86,13 @@ int mthread_semaphore_destroy(int* handle)
     mthread_semaphore_t id = *handle;
     return invoke_syscall(SYSCALL_SMP_DESTORY, (long)id, IGNORE, IGNORE, IGNORE);
 }
+
+
+int mthread_create(mthread_t *thread, void (*start_routine)(void*), void *arg){
+	//TODO:
+	;
+}
+int mthread_join(mthread_t thread){
+	//TODO:
+	;
+}

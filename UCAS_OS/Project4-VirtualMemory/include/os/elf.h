@@ -170,7 +170,7 @@ static inline uintptr_t load_elf(
                     unsigned char *bytes_of_page =
                         (unsigned char *)prepare_page_for_va(
                             (uintptr_t)(phdr->p_vaddr + i), pgdir);
-                    memcpy(
+                    kmemcpy(
                         bytes_of_page,
                         elf_binary + phdr->p_offset + i,
                         MIN(phdr->p_filesz - i, NORMAL_PAGE_SIZE));

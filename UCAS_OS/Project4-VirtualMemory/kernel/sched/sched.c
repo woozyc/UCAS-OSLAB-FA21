@@ -12,6 +12,8 @@
 #include <asm/regs.h>
 #include <os/smp.h>
 
+#include <user_programs.h>
+
 extern void ret_from_exception();
 
 pcb_t pcb[NUM_MAX_TASK];
@@ -21,7 +23,7 @@ pcb_t pid0_pcb_0 = {
     .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_0),//fake user_stack, pid0 always run in s mode
-    .pgdir = 0x5e000000,
+    .pgdir = (long unsigned)0x5e000000lu,
     .preempt_count = 0
 };
 const ptr_t pid0_stack_1 = INIT_KERNEL_STACK + 4 * PAGE_SIZE;
@@ -30,7 +32,7 @@ pcb_t pid0_pcb_1 = {
     .status = TASK_RUNNING,
     .kernel_sp = (ptr_t)(INIT_KERNEL_STACK + 3 * PAGE_SIZE - OFFSET_SIZE - SWITCH_TO_SIZE),
     .user_sp = (ptr_t)(pid0_stack_1),
-    .pgdir = 0x5e000000,
+    .pgdir = (long unsigned)0x5e000000lu,
     .preempt_count = 0
 };
 
@@ -153,7 +155,8 @@ void do_scheduler(void)
     	list_add(&(last_run->list), &ready_queue);
     }
     //switch pgdir
-    set_satp(SATP_MODE_SV39, (*current_running)->pid, (next_running->pgdir & VA_MASK) >> NORMAL_PAGE_SHIFT);
+    set_satp(SATP_MODE_SV39, (*current_running)->pid,
+    		 (((*current_running)->pgdir) & VA_MASK) >> NORMAL_PAGE_SHIFT);
     local_flush_tlb_all();
     
     //switch
@@ -284,11 +287,11 @@ void do_ps(void){
 		}
 	}
 }
-/*
+
 pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	//TO DO:
-	int i;
+	/*int i;
 	for(i = 0; i < NUM_MAX_TASK; i++){
 		if(pcb[i].status == TASK_EXITED){
      		pcb[i].preempt_count = 0;
@@ -313,8 +316,8 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 		}
 	}
 	prints("> [SPAWN] Pcb allocation error\n");
-	return -1;
-}*/
+	*/return -1;
+}
 
 int do_kill(pid_t pid){
 	//TO DO:
@@ -398,8 +401,8 @@ int name_to_id(char *file_name){
 
 pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
-	//TO DO:
-	int i;
+	//TODO:
+	/*int i;
 	int task_id = name_to_id(file_name);
 	if(task_id <= 0){
 		prints("> [EXEC] File dose not exist\n");
@@ -439,6 +442,6 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		return pcb[i].pid;
 		}
 	}
-	prints("> [EXEC] Pcb allocation error\n");
+	prints("> [EXEC] Pcb allocation error\n");*/
 	return -1;
 }

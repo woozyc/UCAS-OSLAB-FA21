@@ -19,6 +19,9 @@ ENTRY(_start)
   li t0, SR_FS
   csrc sstatus, t0
 
+  li t0, SR_SUM
+  csrs CSR_SSTATUS, t0
+  
   /* Load the global pointer */
   .option push
   .option norelax
@@ -41,7 +44,7 @@ clear_bss_done:
 
   /* setup C environment */
   la tp, pid0_pcb_0
-  lw sp, pid0_stack_0
+  ld sp, pid0_stack_0
   
   //core 1 finish
   j all_done
@@ -49,7 +52,7 @@ clear_bss_done:
 secondary:
 
   la tp, pid0_pcb_1
-  lw sp, pid0_stack_1
+  ld sp, pid0_stack_1
   
 all_done:
   

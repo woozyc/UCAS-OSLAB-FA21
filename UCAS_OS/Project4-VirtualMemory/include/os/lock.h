@@ -65,4 +65,7 @@ void do_mutex_lock_acquire(mutex_lock_t *lock);
 void do_mutex_lock_release(mutex_lock_t *lock);
 int try_mutex_lock_acquire(mutex_lock_t *lock);
 
+int do_binsemget(int key);
+int do_binsemop(int binsem_id, int op);
+
 #endif

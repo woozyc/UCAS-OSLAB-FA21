@@ -8,6 +8,12 @@ int kstrlen(const char *src)
     return i;
 }
 
+void memcpy(uint8_t *dest, const uint8_t *src, uint32_t len)
+{
+    for (; len != 0; len--) {
+        *dest++ = *src++;
+    }
+}
 void kmemcpy(uint8_t *dest, const uint8_t *src, uint32_t len)
 {
     for (; len != 0; len--) {

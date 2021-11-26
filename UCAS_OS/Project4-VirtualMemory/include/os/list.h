@@ -37,7 +37,11 @@
 #ifndef INCLUDE_LIST_H_
 #define INCLUDE_LIST_H_
 
-#include <type.h>
+#ifndef NULL
+#define NULL 	(void*)0
+#endif
+
+//#include <type.h>
 
 // double-linked list
 //   TO DO: use your own list design!!

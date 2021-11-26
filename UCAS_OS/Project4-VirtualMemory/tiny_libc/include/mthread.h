@@ -30,7 +30,7 @@
 #include <stdint.h>
 #include <os.h>
 #include <stdatomic.h>
-#include <os/list.h>
+#include <sys/list.h>
 
 typedef int mthread_mutex_t;
 

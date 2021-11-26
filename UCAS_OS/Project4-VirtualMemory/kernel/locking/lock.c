@@ -95,3 +95,14 @@ int mutex_trylock(int handle){
 	return try_mutex_lock_acquire(&(mutex_lock_array[handle].lock_instance));
 }
 
+int do_binsemget(int key){
+	return mutex_get(key);
+}
+int do_binsemop(int binsem_id, int op){
+	if(op){//release
+		return mutex_unlock(binsem_id);
+	}else{//acquire 
+		return mutex_lock(binsem_id);
+	}
+	
+}

@@ -99,7 +99,7 @@ void write_to_file(Records* self, FILE* header, FILE* source)
     fprintf(source, "int get_elf_file(const char *file_name, unsigned char **binary, int *length)\n");
     fprintf(source, "{\n");
     fprintf(source, "  for (int i = 0; i < %d; ++i) {\n", self->size);
-    fprintf(source, "    if (strcmp(elf_files[i].file_name,file_name) == 0) {\n");
+    fprintf(source, "    if (kstrcmp(elf_files[i].file_name,file_name) == 0) {\n");
     fprintf(source, "      *binary = elf_files[i].file_content;\n");
     fprintf(source, "      *length = *elf_files[i].file_length;\n");
     fprintf(source, "      return 1;\n");

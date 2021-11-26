@@ -45,22 +45,22 @@ clear_bss:
 clear_bss_done:
 
   /* setup C environment */
-  lw sp, boot_stack_top_base
+  //li sp, boot_stack_top_base
   
   //core 1 finish
   j all_done
 
 secondary:
 
-  lw sp, boot_stack_top_base
+  li sp, boot_stack_top_base
   
 all_done:
   
   csrw CSR_SSCRATCH, x0
 
-  la a0, riscv_dtb
-  sd a1, (a0)
-  csrr a0, CSR_MHARTID 
+  //la a0, riscv_dtb
+  //sd a1, (a0)
+  //csrr a0, CSR_MHARTID 
 
   /* this should never return */
   call boot_kernel

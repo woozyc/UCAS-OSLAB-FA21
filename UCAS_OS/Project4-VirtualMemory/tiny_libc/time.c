@@ -1,5 +1,4 @@
 #include <time.h>
-#include <os/time.h>
 
 clock_t clock()
 {

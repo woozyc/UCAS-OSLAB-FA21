@@ -115,7 +115,7 @@ void recv_thread(void *arg)
     char id = (unsigned long) arg;
     int position = output_position(id, 1);
     char recv_buf[MAX_MBOX_LENGTH] = {0};
-    mailbox_t *mq = mbox_open(my_mailbox_id);
+    mailbox_t mq = mbox_open(my_mailbox_id);
     long bytes[3] = {0};
     int len, i;
 
@@ -149,7 +149,8 @@ void send_thread(void *arg)
     long bytes[2] = {0};
     char send_buf[MAX_MBOX_LENGTH] = {0};
 
-    mailbox_t *mq[2] = {0};
+    //mailbox_t *mq[2] = {0};
+    mailbox_t mq[2] = {0};
     for (i = 0; i < 2; ++i) {
         mq[i] = mbox_open(other_mailbox_id[i]);
     }
