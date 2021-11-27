@@ -88,6 +88,7 @@ static void shell_clear(){
 static void shell_help(){
 	printf("  [MANUAL]\n");
 	printf("  ps         : process show\n      display all the processes and their statuses\n");
+	printf("  ls         : exec show\n      display all the files that can be executed\n");
 	printf("  clear      : clear screen\n      clear screen and command shell\n");
 	printf("  exec [task_id] [arg1]...:\n      execute task, start running certain test task\n");
 	printf("  kill [pid] : kill process\n      kill a process\n");
@@ -102,6 +103,10 @@ static void shell_exec(char *name, int argc, char **argv){
 		printf("  Task executed, pid = %d\n", pid);
 	else
 		printf("  Task execution error\n");
+}
+
+static void shell_ls(){
+	sys_exec_show();
 }
 
 static void shell_kill(int pid){
@@ -161,16 +166,9 @@ static int resolve_command(int len){
 		shell_help();
 		return 3;
 	}else if(!strcmp(cmd, "exec")){
-		if(*args < '0' || *args > '9'){
-			//printf("%c\n", *args);
-			printf("  Usage: exec [task_id]\n");
-			printf("    0: waitpid   1: semaphore    2: barrier  3: multicore\n");
-			printf("    4: strserver 5: strgenerator 6: affinity 7: 3_mailbox\n");
-			return -1;
-		}
-        for(j = 0; args && j < 4; j++){
+        for(j = 0; args && j < 8; j++){
 			args = split_and_copy(arg_buff[j], args, ' ');
-			shell_exec(arg_buff[0], j, (char **)arg_buff);
+			shell_exec(arg_buff[0], j+1, (char **)arg_buff);
 		}
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
@@ -190,6 +188,9 @@ static int resolve_command(int len){
 			}
 		}
 		return 5;
+	}else if(!strcmp(cmd, "ls")){
+		shell_ls();
+		return 6;
 	}/*else if(!strcmp(cmd, "taskset")){
 		if(!strcmp(args, "-p")){
 			args = input_buffer + j++;

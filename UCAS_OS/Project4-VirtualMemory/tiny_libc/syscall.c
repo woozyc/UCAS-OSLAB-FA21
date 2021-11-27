@@ -117,6 +117,7 @@ pid_t sys_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode)
 {
 	return invoke_syscall(SYSCALL_EXEC, (long)file_name, (long)argc, (long)argv, (long)mode);
 }
+
 void* shmpageget(int key)
 {
     return (void *)invoke_syscall(SYSCALL_SHMPGGET, (long)key, IGNORE, IGNORE, IGNORE);
@@ -125,11 +126,19 @@ void shmpagedt(void *addr)
 {
     invoke_syscall(SYSCALL_SHMPGEDT, (long)addr, IGNORE, IGNORE, IGNORE);
 }
-int binsemget(int key){
+
+int binsemget(int key)
+{
 	return invoke_syscall(SYSCALL_BINSHMPGET, (long)key, IGNORE, IGNORE, IGNORE);
 }
-int binsemop(int binsem_id, int op){
+int binsemop(int binsem_id, int op)
+{
 	return invoke_syscall(SYSCALL_BINSHMPOP, (long)binsem_id, (long)op, IGNORE, IGNORE);
+}
+
+void sys_exec_show()
+{
+	invoke_syscall(SYSCALL_EXECSHOW, IGNORE, IGNORE, IGNORE, IGNORE);
 }
 /* do not use in project2
 int sys_fork()

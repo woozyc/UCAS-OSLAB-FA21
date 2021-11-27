@@ -50,7 +50,7 @@ extern void __global_pointer$();
 
 void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,
-    pcb_t *pcb, ptr_t argc, ptr_t argv)
+    pcb_t *pcb, int argc, ptr_t argv)
 {
     regs_context_t *pt_regs =
         (regs_context_t *)(kernel_stack - sizeof(regs_context_t));
@@ -74,7 +74,7 @@ void init_pcb_stack(
     pt_regs->regs[11] = (reg_t)argv;
     //csr registers
     pt_regs->sepc = entry_point;
-    pt_regs->sstatus = SR_SPIE & ~SR_SPP | SR_SUM;
+    pt_regs->sstatus = (SR_SPIE & ~SR_SPP) | SR_SUM;
     pt_regs->sbadaddr = 0;
     pt_regs->scause = 0;
 
@@ -113,7 +113,7 @@ static void init_pcb()
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
      ptr_t entry_point = (ptr_t)load_elf(elf_files[0].file_content,
-     					 elf_files[0].file_length, pcb[0].pgdir, alloc_page_helper);
+     					 *elf_files[0].file_length, pcb[0].pgdir, alloc_page_helper);
      
      pcb[0].preempt_count = 0;
      pcb[0].type = USER_PROCESS;
@@ -128,7 +128,7 @@ static void init_pcb()
      init_list_head(&(pcb[0].wait_list));
      init_list_head(&(pcb[0].lock_list));
      //init pcb stack
-     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, entry_point, pcb, (ptr_t)NULL, (ptr_t)NULL);
+     init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, entry_point, pcb, 0, (ptr_t)NULL);
      //add to ready_queue
      list_add(&(pcb[0].list), &ready_queue);
      //init other pcbs
@@ -213,6 +213,8 @@ static void init_syscall(void)
     
     syscall[SYSCALL_BINSHMPGET] = (long int (*)())&do_binsemget;
     syscall[SYSCALL_BINSHMPOP] = (long int (*)())&do_binsemop;
+    
+    syscall[SYSCALL_EXECSHOW] = (long int (*)())&do_execshow;
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }

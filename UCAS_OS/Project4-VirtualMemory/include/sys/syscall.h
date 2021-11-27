@@ -80,4 +80,6 @@ void shmpagedt(void *addr);
 
 int binsemget(int key);
 int binsemop(int binsem_id, int op);
+
+void sys_exec_show();
 #endif

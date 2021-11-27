@@ -88,4 +88,6 @@
 #define SYSCALL_BINSHMPGET 43
 #define SYSCALL_BINSHMPOP 44
 
+#define SYSCALL_EXECSHOW 45
+
 #endif

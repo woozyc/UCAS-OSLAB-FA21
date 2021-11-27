@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <asm/regs.h>
 #include <os/smp.h>
+#include <os/elf.h>
 
 #include <user_programs.h>
 
@@ -264,8 +265,8 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
      		return pcb[i].pid;
 		}
 	}
-	prints("> [SPAWN] Pcb allocation error\n");
-	*/return -1;
+	prints("> [SPAWN] Pcb allocation error\n");*/
+	return -1;
 }
 
 int do_kill(pid_t pid){
@@ -350,39 +351,46 @@ int name_to_id(char *file_name){
 
 pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
-	//TODO:
-	/*int i;
-	int task_id = name_to_id(file_name);
-	if(task_id <= 0){
+	//TO DO:
+	int i;
+	unsigned char **binary = NULL;
+	int *length = NULL;
+	if(get_elf_file(file_name, binary, length) == 0){
 		prints("> [EXEC] File dose not exist\n");
 		return -1;
 	}
 	for(i = 0; i < NUM_MAX_TASK; i++){
 		if(pcb[i].status == TASK_EXITED){
      		pcb[i].preempt_count = 0;
-    		pcb[i].type = ;
+    		pcb[i].type = USER_PROCESS;
      		pcb[i].cursor_x = 0;
      		pcb[i].cursor_y = 0;
      		pcb[i].wake_up_time = 0;
-     		pcb[i].priority = ;
+     		pcb[i].priority = P_4;
      		pcb[i].sched_time = get_ticks();
      		pcb[i].mode = mode;
      		//alloc pgdir
 	 		pcb[i].pgdir = allocPage(1);
      		clear_pgdir(pcb[i].pgdir);
      		//copy kernel pgdir
-	 		kmemcpy((char *)pcb[i].pgdir, (char *)pa2kva(0x5e000000), PAGE_SIZE);
+	 		share_pgtable(pcb[i].pgdir, pa2kva(PGDIR_PA));
 	 		//alloc stack
      		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
      		pcb[i].user_sp = USER_STACK_ADDR;
      		//map user stack to a pa
-     		alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir)
+     		ptr_t kva_u_argv = alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
-     		pcb[i].hart_mask = hart_mask ? hart_mask : (*current_running)->hart_mask;
-     		ptr_t entry_point = (ptr_t)load_elf(elf_files[task_id].file_content,
-     							*elf_files[task_id].file_length, pcb[i].pgdir, alloc_page_helper);
-			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc, argv);
+     		pcb[i].hart_mask = 3;
+     		//copy argv
+     		pcb[i].user_sp -= argc;
+     		for(int i = 0; i < argc; i++){
+     			kmemcpy((uint8_t *)kva_u_argv + i, (uint8_t *)argv + i, sizeof(ptr_t));
+     		}
+     		
+     		ptr_t entry_point = (ptr_t)load_elf(*binary, *length, pcb[i].pgdir, alloc_page_helper);
+			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc, pcb[i].user_sp);
+			
      		init_list_head(&(pcb[i].wait_list));
      		init_list_head(&(pcb[i].lock_list));
      		//ready to run
@@ -391,6 +399,15 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		return pcb[i].pid;
 		}
 	}
-	prints("> [EXEC] Pcb allocation error\n");*/
+	prints("> [EXEC] Pcb allocation error\n");
 	return -1;
+}
+
+void do_execshow(){
+	int i;
+	prints("file name: ");
+	for(i = 0; i < ELF_FILE_NUM; i++){
+		prints("%s ", elf_files[i].file_name);
+	}
+	prints("\n");
 }

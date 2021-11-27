@@ -1,4 +1,5 @@
 #include <os/mm.h>
+#include <os/string.h>
 #include <pgtable.h>
 
 ptr_t memCurr = FREEMEM;

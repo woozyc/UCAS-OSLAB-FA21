@@ -151,7 +151,7 @@ extern const ptr_t pid0_stack_1;
 
 void init_pcb_stack(
     ptr_t kernel_stack, ptr_t user_stack, ptr_t entry_point,
-    pcb_t *pcb, ptr_t argc, ptr_t argv);
+    pcb_t *pcb, int argc, ptr_t argv);
 
 extern void switch_to(pcb_t *prev, pcb_t *next, int no_store);
 void do_scheduler(void);
@@ -173,6 +173,6 @@ extern void do_process_show();
 extern pid_t do_getpid();
 extern void do_setmask(int mask, int pid);
 extern pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode);
-extern void do_show_exec();
+extern void do_execshow();
  
 #endif
