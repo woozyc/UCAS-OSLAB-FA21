@@ -290,6 +290,7 @@ int do_kill(pid_t pid){
 			do_unblock(pcb[i].wait_list.next);
 		while(pcb[i].lock_list.next != &(pcb[i].lock_list))
 			do_mutex_lock_release((mutex_lock_t *)pcb[i].lock_list.next);
+		free_mem(pcb[i].pgdir);
 	}
 	pcb[i].status = TASK_EXITED;
 	return 1;
@@ -303,11 +304,12 @@ void do_exit(void){
 	}else{
 		(*current_running)->status = TASK_EXITED;
 	}
-		list_del(&((*current_running)->list));
-		while((*current_running)->wait_list.next != &((*current_running)->wait_list))
-			do_unblock((*current_running)->wait_list.next);
-		while((*current_running)->lock_list.next != &((*current_running)->lock_list))
-			do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
+	list_del(&((*current_running)->list));
+	while((*current_running)->wait_list.next != &((*current_running)->wait_list))
+		do_unblock((*current_running)->wait_list.next);
+	while((*current_running)->lock_list.next != &((*current_running)->lock_list))
+		do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
+	free_mem((*current_running)->pgdir);
 	do_scheduler();
 }
 
@@ -352,13 +354,15 @@ int name_to_id(char *file_name){
 pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	//TO DO:
-	int i;
+	int i, argc_r, mode_r = mode;
 	unsigned char *binary;
 	int length;
+	argc_r = argc;
 	if(get_elf_file(file_name, &binary, &length) == 0){
 		prints("> [EXEC] File dose not exist\n");
 		return -1;
 	}
+	argc = argc_r;
 	for(i = 0; i < NUM_MAX_TASK; i++){
 		if(pcb[i].status == TASK_EXITED){
      		pcb[i].preempt_count = 0;
@@ -368,7 +372,7 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		pcb[i].wake_up_time = 0;
      		pcb[i].priority = P_4;
      		pcb[i].sched_time = get_ticks();
-     		pcb[i].mode = mode;
+     		pcb[i].mode = mode_r;
      		//alloc pgdir
 	 		pcb[i].pgdir = allocPage(1);
      		clear_pgdir(pcb[i].pgdir);
@@ -378,18 +382,26 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
      		pcb[i].user_sp = USER_STACK_ADDR;
      		//map user stack to a pa
-     		ptr_t kva_u_argv = alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
+     		ptr_t kva_u_argv_0 = alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
      		pcb[i].hart_mask = 3;
      		//copy argv
-     		pcb[i].user_sp -= argc;
-     		for(int i = 0; i < argc; i++){
-     			kmemcpy((uint8_t *)kva_u_argv + i, (uint8_t *)argv + i, sizeof(ptr_t));
+     		//suppose each string is 32bytes long, place string
+     		pcb[i].user_sp -= (argc_r * 32);
+     		char *kva_u_argv_1 = kva_u_argv_0 - (argc_r * 32);
+     		char *u_argv_string = pcb[i].user_sp;
+     		//place argv, support at most 4 args
+     		pcb[i].user_sp -= (4 * sizeof(char *));
+     		char **kva_u_argv_2 = kva_u_argv_1 - (4 * sizeof(char *));
+     		
+     		for(int i = 0; i < argc_r; i++){
+     			kstrcpy(kva_u_argv_1 + (i * 32), argv[i]);//copy string
+     			kva_u_argv_2[i] = u_argv_string + (i * 32);
      		}
      		
      		ptr_t entry_point = (ptr_t)load_elf(binary, length, pcb[i].pgdir, alloc_page_helper);
-			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc, pcb[i].user_sp);
+			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc_r, pcb[i].user_sp);
 			
      		init_list_head(&(pcb[i].wait_list));
      		init_list_head(&(pcb[i].lock_list));

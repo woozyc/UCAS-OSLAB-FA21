@@ -227,6 +227,7 @@ int main()
     if (get_current_cpu_id() == 0){
     	lock_kernel();
         local_flush_tlb_all();
+        
 	    init_pcb();
     	current_running = &current_running_0;
     	printk("> [INIT] PCB initialization succeeded.\n\r");
@@ -251,6 +252,9 @@ int main()
     	printk("> [INIT] SCREEN initialization succeeded.\n\r");
     	//printk("> [INIT] SCREEN initialization skipped.\n\r");
 		
+		//init free mem page list
+	    //free_list->next = NULL;
+	    
 		//wake up slave core
 		//disable_softwareint();
     	//sbi_send_ipi((unsigned long *)0);

@@ -61,9 +61,10 @@ static struct task_info *test_tasks[16] = {&task_test_waitpid,
                                            &task_mailbox_test};
 static int num_test_tasks = 8;*/
 
+#define MAXARG 4
 
 static char input_buffer[SCREEN_WIDTH];
-static char arg_buff[8][32] = {0};//for exec
+static char *arg_buff[MAXARG];
 static char commandhead[] = "> root@UCAS_OS: ";
 
 static void shell_init_display(void){
@@ -117,44 +118,27 @@ static void shell_kill(int pid){
 		printf("  Process kill error\n");
 }
 
-char *split_and_copy(char *dest, char *s, const char c)
-{
-    int len = strlen(s);
-    if (len == 0)
-        return NULL;
-    for (int i = 0; i < len; i++){
-        if (s[i] != c){
-            dest[i] = s[i];
-        }else{
-            dest[i] = 0;
-            return s + i + 1;
-        }
-    }
-    return NULL;
-}
-
 static int resolve_command(int len){
-	int j;
-	char *cmd, *args;
+	int argc = 0, j;
+	char *cmd;
 	//int set_mask, set_pid, set_taskid;
 	for(j = 0; j < len - 1 && input_buffer[j] == ' '; j++);//find first none empty char
 	cmd = input_buffer + j;
 	if(strlen(cmd) == 0)
 		return -1;
 	for( ; ; j++){
-		if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
+		if(input_buffer[j] == 0)
+			break;
+		if(input_buffer[j] == ' '){//split argvs
 			input_buffer[j] = 0;
 			j++;
-			break;
+			if(input_buffer[j] != ' ')
+				arg_buff[argc++] = input_buffer + j;
 		}
 	}
-	args = input_buffer + j++;
-	for( ; ; j++){
-		if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
-			input_buffer[j] = 0;
-			j++;
-			break;
-		}
+	if(argc > MAXARG){
+		argc = 4;
+		printf("  Too many arguments, max: 4\n");
 	}
 	if(!strcmp(cmd, "ps")){
 		shell_ps();
@@ -166,26 +150,16 @@ static int resolve_command(int len){
 		shell_help();
 		return 3;
 	}else if(!strcmp(cmd, "exec")){
-        for(j = 0; args && j < 8; j++){
-			args = split_and_copy(arg_buff[j], args, ' ');
-			shell_exec(arg_buff[0], j+1, (char **)arg_buff);
-		}
+		shell_exec(arg_buff[0], argc, arg_buff);
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
-		if(*args < '0' || *args > '9'){
-			printf("  Usage: kill [pid], try \"ps\" to get pid.\n");
-			return -1;
-		}
-		while(*args >= '0' && *args <= '9' && j <= len + 1){
-			shell_kill(itoa(args));
-			args = input_buffer + j++;
-			for( ; ; j++){
-				if(input_buffer[j] == ' ' || input_buffer[j] == 0){//split command
-					input_buffer[j] = 0;
-					j++;
-					break;
-				}
+		for(int i = 0; i < argc; i++){
+			int pid = itoa(arg_buff[i]);
+			if(pid < 0){
+				printf("  Usage: kill [pid], try \"ps\" to get pid.\n");
+				return -1;
 			}
+			shell_kill(pid);
 		}
 		return 5;
 	}else if(!strcmp(cmd, "ls")){

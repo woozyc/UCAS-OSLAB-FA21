@@ -54,6 +54,10 @@ int mutex_get(int key){
 	//return 0 when failed
 	int i;
 	for(i = 1; i < MAX_MUTEX_LOCK; i++){
+		if(mutex_lock_array[i].key == key)
+			return i;
+	}
+	for(i = 1; i < MAX_MUTEX_LOCK; i++){
 		if(!mutex_lock_array[i].key){
 			mutex_lock_array[i].key = key;
 			do_mutex_lock_init(&(mutex_lock_array[i].lock_instance));

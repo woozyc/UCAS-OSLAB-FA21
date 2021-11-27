@@ -11,11 +11,17 @@ int main(int argc, char* argv[])
 	uintptr_t mem1 = 0;
 	int curs = 0;
 	int i;
-	sys_move_cursor(2, 2);
+	sys_move_cursor(2, 1);
 	// printf("argc = %d\n", argc);
 	// for (i = 0; i < argc; ++i) {
 	// 	printf("argv[%d] = %s\n", i, argv[i]);
 	// }
+	/*printf("argc: %d\n", argc);
+	for (i = 1; i < argc; i++)
+	{
+		printf("%s,\n", argv[i]);
+	}
+	*/
 	for (i = 1; i < argc; i++)
 	{
 		mem1 = atol(argv[i]);

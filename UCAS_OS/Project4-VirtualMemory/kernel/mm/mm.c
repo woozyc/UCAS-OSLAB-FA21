@@ -1,15 +1,38 @@
 #include <os/mm.h>
 #include <os/string.h>
+#include <os/stdio.h>
 #include <pgtable.h>
 
 ptr_t memCurr = FREEMEM;
 
+//free physical page pool, array-based linked-list
+typedef struct freemem_node{
+	int swap_status;
+	int next;
+}freemem_node;
+freemem_node freemem_pool[(FREEMEM_END - FREEMEM) / PAGE_SIZE];
+int freemem_head = -1;
+
 ptr_t allocPage(int numPage)
 {
+    ptr_t ret;
+    if(freemem_head >= 0){
+    	ret = freemem_head * PAGE_SIZE + FREEMEM;
+    	freemem_head = freemem_pool[freemem_head].next;
+    	return ret;
+    }
     // align PAGE_SIZE
-    ptr_t ret = ROUND(memCurr, PAGE_SIZE);
-    memCurr = ret + numPage * PAGE_SIZE;
-    return memCurr;
+    ret = ROUND(memCurr, PAGE_SIZE);
+    if(ret < FREEMEM_END){//still have space for alloc
+	    memCurr = ret + numPage * PAGE_SIZE;
+    	return memCurr;
+    }
+    //physical mem full
+    //TODO:
+    prints("> [MEM] physical mem full\n");
+    while(1)
+    	;
+    return (ptr_t)NULL;
 }
 
 void* kmalloc(size_t size)
@@ -71,4 +94,41 @@ uintptr_t alloc_page_helper(uintptr_t va, uintptr_t pgdir_t)
         &ptes[vpn0], _PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE |
                         _PAGE_EXEC | _PAGE_ACCESSED | _PAGE_DIRTY | _PAGE_USER);
     return pa2kva(pa);
+}
+
+void free_mem(uintptr_t pgdir_t){
+	int i, k = freemem_head, node_index;
+	PTE *pgdir = (PTE *)pgdir_t;
+	PTE *pmd;
+	for(i = 0; i < 512; i++){
+		if(pgdir[i] % 2){//pgdir exist
+			pmd = (PTE *)pa2kva(get_pa(pgdir[i]));
+			//free level-2 pgtable
+			node_index = ((unsigned long)pmd - FREEMEM) / PAGE_SIZE;
+			freemem_pool[node_index].next = -1;//end of freemem list
+			freemem_pool[node_index].swap_status = 0;
+			if(freemem_head < 0){//list empty
+				freemem_head = node_index;
+				k = freemem_head;
+			}else{
+				//k keeps finding the next, there is no need to turn back
+				for(; freemem_pool[k].next >= 0; k = freemem_pool[k].next);
+				//k is the last list node
+				freemem_pool[k].next = node_index;
+			}
+		}
+	}
+	//free level-1 pgdir
+	node_index = ((unsigned long)pgdir - FREEMEM) / PAGE_SIZE;
+	freemem_pool[node_index].next = -1;//end of freemem list
+	freemem_pool[node_index].swap_status = 0;
+	if(freemem_head < 0){//list empty
+		freemem_head = node_index;
+		k = freemem_head;
+	}else{
+		//k keeps finding the next, there is no need to turn back
+		for(; freemem_pool[k].next >= 0; k = freemem_pool[k].next);
+		//k is the last list node
+		freemem_pool[k].next = node_index;
+	}
 }
