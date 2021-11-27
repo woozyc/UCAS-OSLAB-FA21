@@ -353,9 +353,9 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
 	//TO DO:
 	int i;
-	unsigned char **binary = NULL;
-	int *length = NULL;
-	if(get_elf_file(file_name, binary, length) == 0){
+	unsigned char *binary;
+	int length;
+	if(get_elf_file(file_name, &binary, &length) == 0){
 		prints("> [EXEC] File dose not exist\n");
 		return -1;
 	}
@@ -388,7 +388,7 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      			kmemcpy((uint8_t *)kva_u_argv + i, (uint8_t *)argv + i, sizeof(ptr_t));
      		}
      		
-     		ptr_t entry_point = (ptr_t)load_elf(*binary, *length, pcb[i].pgdir, alloc_page_helper);
+     		ptr_t entry_point = (ptr_t)load_elf(binary, length, pcb[i].pgdir, alloc_page_helper);
 			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, argc, pcb[i].user_sp);
 			
      		init_list_head(&(pcb[i].wait_list));
