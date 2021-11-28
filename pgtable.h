@@ -84,73 +84,88 @@ static inline void set_satp(
 #define _PAGE_PFN_SHIFT 10lu
 
 #define VA_MASK ((1lu << 39) - 1)
-#define PPN_MASK (~((~(0lu)) << 54) & ((~(0lu)) << 10))
 
 #define PPN_BITS 9lu
 #define NUM_PTE_ENTRY (1 << PPN_BITS)
-
-#define KVA_OFFSET 0xffffffc000000000lu
+#define PA_VA_OFFSET (uintptr_t)0xffffffc000000000
 
 typedef uint64_t PTE;
 
 static inline uintptr_t kva2pa(uintptr_t kva)
 {
-    // TO DO:
-    return kva - KVA_OFFSET;
+    uintptr_t temp = kva - PA_VA_OFFSET;
+    return temp;
+    // TODO:
 }
 
 static inline uintptr_t pa2kva(uintptr_t pa)
 {
-    // TO DO:
-    return pa  + KVA_OFFSET;
+    uintptr_t temp = pa + PA_VA_OFFSET;
+    return temp;
+    // TODO:
 }
 
 static inline uint64_t get_pa(PTE entry)
 {
-    // TO DO:
     uint64_t mask = ((1lu << 54) - 1);
     return ((entry & mask) >> 10) << 12;
+    // TODO:
 }
 
 static inline uintptr_t get_kva_of(uintptr_t va, uintptr_t pgdir_va)
 {
-    // TO DO:
-    return 0lu;
+    /*va &= VA_MASK;
+    uint64_t vpn2 =
+        va >> (NORMAL_PAGE_SHIFT + PPN_BITS + PPN_BITS);
+    uint64_t vpn1 = (vpn2 << PPN_BITS) ^
+                    (va >> (NORMAL_PAGE_SHIFT + PPN_BITS));
+    uint64_t vpn0 = ((vpn2 << PPN_BITS + PPN_BITS) | (vpn1 << PPN_BITS)) ^ (va >> NORMAL_PAGE_SHIFT);
+    
+    PTE *pmd_1 = (PTE *)pgdir[vpn2];
+    
+    PTE *pmd_2 = (PTE *)pmd_1[vpn1];
+    uint64_t mask_1 = ((1lu << 12) - 1);    
+    uint64_t pa =  get_va(*pmd_2) | va & mask_1;
+    
+    return pa2kva(pa);*/
+    return 0;
+    // TODO:
 }
 
 /* Get/Set page frame number of the `entry` */
 static inline long get_pfn(PTE entry)
 {
-    // TO DO:
     uint64_t mask = ((1lu << 54) - 1);
     return (entry & mask) >> 10;
+    // TODO:
 }
 static inline void set_pfn(PTE *entry, uint64_t pfn)
 {
-    // TO DO:
     uint64_t mask_1 = ((1lu << 10) - 1);
     uint64_t mask   = ((1lu << 54) - 1) ^ mask_1;
     *entry |= mask & (pfn << 10);
+    // TODO:
 }
 
 /* Get/Set attribute(s) of the `entry` */
 static inline long get_attribute(PTE entry, uint64_t mask)
 {
-    // TO DO:
     return entry & mask;
+    // TODO:
 }
 static inline void set_attribute(PTE *entry, uint64_t bits)
 {
-    // TO DO:
     *entry |= bits;
+    // TODO:
 }
 
 static inline void clear_pgdir(uintptr_t pgdir_addr)
 {
-    // TO DO:
-    uint64_t *pgdir = (uint64_t *)pgdir_addr;
-    for (int i = 0; i < 512; i++, pgdir++)
-        *pgdir = 0;
+    int i;
+    for(i = 0;i < NORMAL_PAGE_SIZE ; i += 8){
+        *((uint64_t *)(pgdir_addr+i)) = 0;
+    }
+    // TODO:
 }
 
 #endif  // PGTABLE_H

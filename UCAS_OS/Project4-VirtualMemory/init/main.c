@@ -225,7 +225,7 @@ int main()
 {
     // init Process Control Block (-_-!)
     if (get_current_cpu_id() == 0){
-    	lock_kernel();
+    	//lock_kernel();
         local_flush_tlb_all();
         
 	    init_pcb();
@@ -270,7 +270,7 @@ int main()
     // Setup timer interrupt and enable all interrupt
    
     sbi_set_timer(get_ticks() + TIMER_INTERVAL);
-	unlock_kernel();
+	//unlock_kernel();
 
     while (1) {
         // (QAQQQQQQQQQQQ)

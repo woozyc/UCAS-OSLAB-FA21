@@ -108,6 +108,7 @@ directcopy:
 	addi a2, a2, 64
 	addi s0, s0, -64
 	add a0, a0, s2
+	mv a1, s0
 	bgtz s0, copy 
 	
 	

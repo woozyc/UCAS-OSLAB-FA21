@@ -33,7 +33,7 @@
 #define PAGE_SIZE 4096 // 4K
 #define INIT_KERNEL_STACK 0xffffffc051000000lu
 #define FREEMEM (INIT_KERNEL_STACK+4*PAGE_SIZE)//0xffffffc051004000lu
-#define FREEMEM_END 0xffffffc052004000lu
+#define FREEMEM_END 0xffffffc05e000000lu//0xffffffc052004000lu
 #define USER_STACK_ADDR 0xf00010000lu
 
 /* Rounding; only works for n = power of two */

@@ -10,15 +10,19 @@ typedef struct freemem_node{
 	int swap_status;
 	int next;
 }freemem_node;
-freemem_node freemem_pool[(FREEMEM_END - FREEMEM) / PAGE_SIZE];
+freemem_node freemem_pool[(FREEMEM_END - FREEMEM) / PAGE_SIZE] = {0, -1};
 int freemem_head = -1;
 
 ptr_t allocPage(int numPage)
 {
     ptr_t ret;
+    int temp;
     if(freemem_head >= 0){
+    	temp = freemem_head;
     	ret = freemem_head * PAGE_SIZE + FREEMEM;
     	freemem_head = freemem_pool[freemem_head].next;
+    	freemem_pool[temp].swap_status = 0; 
+    	freemem_pool[temp].next = -1; 
     	return ret;
     }
     // align PAGE_SIZE
@@ -104,6 +108,9 @@ void free_mem(uintptr_t pgdir_t){
 		if(pgdir[i] % 2){//pgdir exist
 			pmd = (PTE *)pa2kva(get_pa(pgdir[i]));
 			//free level-2 pgtable
+			//pay attention! DO NOT free kernel level-2 pages!!!
+			if(pmd > FREEMEM_END)
+				continue ;
 			node_index = ((unsigned long)pmd - FREEMEM) / PAGE_SIZE;
 			freemem_pool[node_index].next = -1;//end of freemem list
 			freemem_pool[node_index].swap_status = 0;

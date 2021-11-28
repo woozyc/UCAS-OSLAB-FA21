@@ -41,7 +41,9 @@ void map_page(uint64_t va, uint64_t pa, PTE *pgdir)
 void enable_vm()
 {
     // write satp to enable paging
+    sbi_console_putstr("setting satp...\n\r");
     set_satp(SATP_MODE_SV39, 0, PGDIR_PA >> NORMAL_PAGE_SHIFT);
+    sbi_console_putstr("flushing tlb...\n\r");
     local_flush_tlb_all();
 }
 
@@ -51,11 +53,13 @@ void enable_vm()
  */
 void setup_vm()
 {
+    sbi_console_putstr("seting up virtualmem...\n\r");
     clear_pgdir(PGDIR_PA);
     // map kernel virtual address(kva) to kernel physical
     // address(kpa) kva = kpa + 0xffff_ffc0_0000_0000 use 2MB page,
     // map all physical memory
     PTE *early_pgdir = (PTE *)PGDIR_PA;
+    sbi_console_putstr("maping pages...\n\r");
     for (uint64_t kva = 0xffffffc050200000lu;
          kva < 0xffffffc060000000lu; kva += 0x200000lu) {
         map_page(kva, kva2pa(kva), early_pgdir);
@@ -65,6 +69,7 @@ void setup_vm()
          pa += 0x200000lu) {
         map_page(pa, pa, early_pgdir);
     }
+    sbi_console_putstr("enabling virtualmem...\n\r");
     enable_vm();
 }
 
@@ -79,14 +84,19 @@ kernel_entry_t start_kernel = NULL;
 /*********** start here **************/
 int boot_kernel(unsigned long mhartid, uintptr_t riscv_dtb)
 {
+    sbi_console_putstr("starting booting...\n\r");
     if (mhartid == 0) {
+    	sbi_console_putstr("core 0...\n\r");
         setup_vm();
+    sbi_console_putstr("loading kernel elf...\n\r");
         start_kernel =
             (kernel_entry_t)load_elf(_elf_main, _length_main,
                                      PGDIR_PA, directmap);
+    sbi_console_putstr("loading finished...\n\r");
     } else {
         enable_vm();
     }
+    sbi_console_putstr("starting kernel...\n\r");
     start_kernel(mhartid, riscv_dtb);
     return 0;
 }

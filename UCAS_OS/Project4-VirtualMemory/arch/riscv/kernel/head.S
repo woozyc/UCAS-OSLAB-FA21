@@ -2,7 +2,8 @@
 /*
  * Copyright (C) 2012 Regents of the University of California
  */
-
+#include <asm/sbidef.h>
+#include <asm/sbiasm.h>
 #include <asm.h>
 #include <csr.h>
 
@@ -62,6 +63,9 @@ all_done:
   //sd a1, (a0)
   csrr a0, CSR_MHARTID 
 
+	lui a5, %hi(msg)
+	addi a0, a5, %lo(msg)
+	SBI_CALL SBI_CONSOLE_PUTSTR
   /* this should never return */
   call boot_kernel
 
@@ -70,3 +74,6 @@ loop:
   j loop
 
 END(_start)
+.data
+
+msg: .string "head.s\n\r"

@@ -259,7 +259,7 @@ ENDPROC(switch_to)
 
 ENTRY(ret_from_exception)
   /* TO DO: */
-  call unlock_kernel
+  //call unlock_kernel
   
   RESTORE_CONTEXT
   //restore user process scratch
@@ -279,7 +279,7 @@ ENTRY(exception_handler_entry)
   la gp, __global_pointer$
   .option pop
   
-  call lock_kernel
+  //call lock_kernel
 
   csrw CSR_SSCRATCH, x0
 

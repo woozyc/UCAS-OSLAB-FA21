@@ -291,6 +291,7 @@ int do_kill(pid_t pid){
 		while(pcb[i].lock_list.next != &(pcb[i].lock_list))
 			do_mutex_lock_release((mutex_lock_t *)pcb[i].lock_list.next);
 		free_mem(pcb[i].pgdir);
+		do_scheduler();
 	}
 	pcb[i].status = TASK_EXITED;
 	return 1;
@@ -378,6 +379,7 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		clear_pgdir(pcb[i].pgdir);
      		//copy kernel pgdir
 	 		share_pgtable(pcb[i].pgdir, pa2kva(PGDIR_PA));
+	 		((PTE *)(pcb[i].pgdir))[1] = (PTE )0;
 	 		//alloc stack
      		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
      		pcb[i].user_sp = USER_STACK_ADDR;
