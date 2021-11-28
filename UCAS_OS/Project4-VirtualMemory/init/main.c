@@ -215,6 +215,8 @@ static void init_syscall(void)
     syscall[SYSCALL_BINSHMPOP] = (long int (*)())&do_binsemop;
     
     syscall[SYSCALL_EXECSHOW] = (long int (*)())&do_execshow;
+    
+    syscall[SYSCALL_THREAD_CREATE] = (long int (*)())&do_thread_create;
     //init sleep_queue
 	init_list_head(&sleep_queue);
 }

@@ -290,6 +290,15 @@ int do_kill(pid_t pid){
 			do_unblock(pcb[i].wait_list.next);
 		while(pcb[i].lock_list.next != &(pcb[i].lock_list))
 			do_mutex_lock_release((mutex_lock_t *)pcb[i].lock_list.next);
+		if(pcb[i].parent_id == 0){
+			for(int thread_id = pcb[i].next_thread_id; thread_id; thread_id = pcb[thread_id].next_thread_id){	
+				list_del(&(pcb[thread_id].list));
+				while(pcb[thread_id].wait_list.next != &(pcb[thread_id].wait_list))
+					do_unblock(pcb[thread_id].wait_list.next);
+				while(pcb[thread_id].lock_list.next != &(pcb[thread_id].lock_list))
+				do_mutex_lock_release((mutex_lock_t *)pcb[thread_id].lock_list.next);
+			}
+		}
 		free_mem(pcb[i].pgdir);
 		do_scheduler();
 	}
@@ -388,6 +397,9 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
      		pcb[i].hart_mask = 3;
+     		pcb[i].thread_num = 0;
+     		pcb[i].next_thread_id = 0;
+     		pcb[i].parent_id = 0;
      		//copy argv
      		//suppose each string is 32bytes long, place string
      		pcb[i].user_sp -= (argc_r * 32);
@@ -424,4 +436,59 @@ void do_execshow(){
 		prints("%s ", elf_files[i].file_name);
 	}
 	prints("\n");
+}
+
+void copy_thread_gp(ptr_t kernel_base1, ptr_t kernel_base2){//copy from 2 to 1
+	regs_context_t *pt_regs1 =
+        (regs_context_t *)(kernel_base1 - sizeof(regs_context_t));
+    regs_context_t *pt_regs2 =
+        (regs_context_t *)(kernel_base2 - sizeof(regs_context_t));
+    pt_regs1->regs[3] = pt_regs2->regs[3];
+}
+pid_t do_thread_create(int *thread, void (*start_routine)(void*), void *arg){
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
+	//TO DO:
+	int i;
+	for(i = 0; i < NUM_MAX_TASK; i++){
+		if(pcb[i].status == TASK_EXITED){
+     		pcb[i].preempt_count = 0;
+    		pcb[i].type = KERNEL_THREAD;
+     		pcb[i].cursor_x = 0;
+     		pcb[i].cursor_y = 0;
+     		pcb[i].wake_up_time = 0;
+     		pcb[i].priority = P_4;
+     		pcb[i].sched_time = get_ticks();
+     		pcb[i].mode = AUTO_CLEANUP_ON_EXIT;
+     		//share pgdir
+	 		pcb[i].pgdir = (*current_running)->pgdir;
+	 		//alloc stack
+     		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
+     		(*current_running)->thread_num++;
+     		pcb[i].user_sp = USER_STACK_ADDR + PAGE_SIZE * (*current_running)->thread_num;
+     		//map user stack to a pa
+     		alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
+     		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
+     		pcb[i].user_stack_base = pcb[i].user_sp;
+     		pcb[i].hart_mask = 3;
+     		pcb[i].thread_num = 0;
+     		pcb[i].next_thread_id = (*current_running)->next_thread_id;
+     		(*current_running)->next_thread_id = pcb[i].pid;
+     		pcb[i].parent_id = (*current_running)->pid;
+     		
+     		ptr_t entry_point = start_routine;
+			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, arg, NULL);
+			copy_thread_gp(pcb[i].kernel_stack_base, (*current_running)->kernel_stack_base);
+			
+     		init_list_head(&(pcb[i].wait_list));
+     		init_list_head(&(pcb[i].lock_list));
+     		//ready to run
+     		pcb[i].status = TASK_READY;
+     		list_add(&(pcb[i].list), &ready_queue);
+     		
+     		*thread = pcb[i].pid;
+     		return pcb[i].pid;
+		}
+	}
+	prints("> [THREAD] Pcb allocation error\n");
+	return -1;
 }

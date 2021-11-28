@@ -80,13 +80,14 @@ int output_position(char id, int is_recv)
 
 const char mailbox_id_template[] = "mailbox-test-_";
 char my_mailbox_id[sizeof(mailbox_id_template)];
+//char my_mailbox_id[] = "mailbox-test-a";
 char other_mailbox_id[2][sizeof(mailbox_id_template)];
 char other_id[2];
 void fill_mailbox_id(char my_id)
 {
     char id_i;
     int idx = 0;
-
+	
     strcpy(my_mailbox_id, mailbox_id_template);
     // replace '_' with `id`
     my_mailbox_id[sizeof(mailbox_id_template) - 2] = my_id;
@@ -95,6 +96,7 @@ void fill_mailbox_id(char my_id)
         if (id_i != my_id) {
             strcpy(other_mailbox_id[idx], mailbox_id_template);
             other_mailbox_id[idx][sizeof(mailbox_id_template) - 2] = id_i;
+            //printf("%c, ", id_i);
             other_id[idx] = id_i;
             ++idx;
         }
@@ -198,6 +200,9 @@ int main(int argc, char* argv[])
     if (id == 'a') {
         fill_buffer();
     }
+    /*for (int i = 0; i < 2; ++i) {
+        printf("%s\n", other_mailbox_id[i]);
+    }*/
 
     mthread_t recv;
     mthread_create(&recv, recv_thread, (void*)(unsigned long)id);

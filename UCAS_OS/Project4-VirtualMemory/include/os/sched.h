@@ -123,6 +123,15 @@ typedef struct pcb
     /* PGDIR */
     uintptr_t pgdir;
     
+    /* thread number */
+    int thread_num;
+    
+    /* next thread id */
+    int next_thread_id;
+    
+    /* parent thread id */
+    int parent_id;
+    
 } pcb_t;
 
 /* task information, used to init PCB */
@@ -174,5 +183,6 @@ extern pid_t do_getpid();
 extern void do_setmask(int mask, int pid);
 extern pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode);
 extern void do_execshow();
+pid_t do_thread_create(int *thread, void (*start_routine)(void*), void *arg);
  
 #endif

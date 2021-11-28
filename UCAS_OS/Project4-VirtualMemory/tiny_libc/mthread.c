@@ -89,10 +89,15 @@ int mthread_semaphore_destroy(int* handle)
 
 
 int mthread_create(mthread_t *thread, void (*start_routine)(void*), void *arg){
-	//TODO:
-	;
+	//TO DO:
+	int pid = invoke_syscall(SYSCALL_THREAD_CREATE, (long)thread, (long)start_routine, (long)arg, IGNORE);
+	if(pid <= 0){
+		printf("> [MTHREAD] thread create error\n");
+		return -1;
+	}
+	return pid;
 }
 int mthread_join(mthread_t thread){
 	//TODO:
-	;
+	printf("mthread_join to be done\n");
 }

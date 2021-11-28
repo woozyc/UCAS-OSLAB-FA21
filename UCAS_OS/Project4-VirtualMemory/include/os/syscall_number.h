@@ -90,4 +90,7 @@
 
 #define SYSCALL_EXECSHOW 45
 
+#define SYSCALL_THREAD_CREATE 46
+#define SYSCALL_THREAD_JION 47
+
 #endif
