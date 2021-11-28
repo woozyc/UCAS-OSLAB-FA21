@@ -403,11 +403,11 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		//copy argv
      		//suppose each string is 32bytes long, place string
      		pcb[i].user_sp -= (argc_r * 32);
-     		char *kva_u_argv_1 = kva_u_argv_0 - (argc_r * 32);
-     		char *u_argv_string = pcb[i].user_sp;
+     		char *kva_u_argv_1 = (char *)(kva_u_argv_0 - (argc_r * 32));
+     		char *u_argv_string = (char *)pcb[i].user_sp;
      		//place argv, support at most 4 args
      		pcb[i].user_sp -= (4 * sizeof(char *));
-     		char **kva_u_argv_2 = kva_u_argv_1 - (4 * sizeof(char *));
+     		char **kva_u_argv_2 = (char **)(kva_u_argv_1 - (4 * sizeof(char *)));
      		
      		for(int i = 0; i < argc_r; i++){
      			kstrcpy(kva_u_argv_1 + (i * 32), argv[i]);//copy string
@@ -466,7 +466,7 @@ pid_t do_thread_create(int *thread, void (*start_routine)(void*), void *arg){
      		(*current_running)->thread_num++;
      		pcb[i].user_sp = USER_STACK_ADDR + PAGE_SIZE * (*current_running)->thread_num;
      		//map user stack to a pa
-     		alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
+     		alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir);
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
      		pcb[i].hart_mask = 3;
@@ -475,8 +475,8 @@ pid_t do_thread_create(int *thread, void (*start_routine)(void*), void *arg){
      		(*current_running)->next_thread_id = pcb[i].pid;
      		pcb[i].parent_id = (*current_running)->pid;
      		
-     		ptr_t entry_point = start_routine;
-			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, arg, NULL);
+     		ptr_t entry_point = (ptr_t)start_routine;
+			init_pcb_stack(pcb[i].kernel_sp, pcb[i].user_sp, entry_point, pcb + i, (int)(long)arg, (ptr_t)NULL);
 			copy_thread_gp(pcb[i].kernel_stack_base, (*current_running)->kernel_stack_base);
 			
      		init_list_head(&(pcb[i].wait_list));

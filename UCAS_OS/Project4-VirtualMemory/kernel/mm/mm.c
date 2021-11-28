@@ -7,12 +7,34 @@ ptr_t memCurr = FREEMEM;
 
 //free physical page pool, array-based linked-list
 typedef struct freemem_node{
-	int swap_status;
 	int next;
 }freemem_node;
-freemem_node freemem_pool[(FREEMEM_END - FREEMEM) / PAGE_SIZE] = {0, -1};
+freemem_node freemem_pool[(FREEMEM_END - FREEMEM) / PAGE_SIZE] = {{-1}};//index is linear mapped to pa
 int freemem_head = -1;
 
+//swap vpage pool
+typedef struct swapmem_node{
+	int pid;
+	ptr_t sd_addr;
+	ptr_t vaddr;
+	int next;
+}swapmem_node;
+swapmem_node swapmem_pool[4096] = {{0, 0, 0, -1}};//index is NOT linear mapped to pa
+int swapmem_head = -1;
+
+//alloc fifo pool, only store swappable pgs
+typedef struct allocmem_node{
+	int next;
+}allocmem_node;
+allocmem_node allocmem_pool[4096] = {{0, -1}};//index is NOT linear mapped to pa
+int allocmem_head = -1;
+
+ptr_t swap_page(){
+	//TODO:
+	printk("> [MEM] physical mem full\n\r");
+	while(1);
+	return (ptr_t)NULL;
+}
 ptr_t allocPage(int numPage)
 {
     ptr_t ret;
@@ -21,7 +43,6 @@ ptr_t allocPage(int numPage)
     	temp = freemem_head;
     	ret = freemem_head * PAGE_SIZE + FREEMEM;
     	freemem_head = freemem_pool[freemem_head].next;
-    	freemem_pool[temp].swap_status = 0; 
     	freemem_pool[temp].next = -1; 
     	return ret;
     }
@@ -32,10 +53,10 @@ ptr_t allocPage(int numPage)
     	return memCurr;
     }
     //physical mem full
-    //TODO:
-    prints("> [MEM] physical mem full\n");
-    while(1)
-    	;
+    //prints("> [MEM] physical mem full\n");
+    //while(1)
+    	//;
+    ret = swap_page();
     return (ptr_t)NULL;
 }
 
@@ -109,11 +130,10 @@ void free_mem(uintptr_t pgdir_t){
 			pmd = (PTE *)pa2kva(get_pa(pgdir[i]));
 			//free level-2 pgtable
 			//pay attention! DO NOT free kernel level-2 pages!!!
-			if(pmd > FREEMEM_END)
+			if(pmd > (PTE *)FREEMEM_END)
 				continue ;
 			node_index = ((unsigned long)pmd - FREEMEM) / PAGE_SIZE;
 			freemem_pool[node_index].next = -1;//end of freemem list
-			freemem_pool[node_index].swap_status = 0;
 			if(freemem_head < 0){//list empty
 				freemem_head = node_index;
 				k = freemem_head;
@@ -128,7 +148,6 @@ void free_mem(uintptr_t pgdir_t){
 	//free level-1 pgdir
 	node_index = ((unsigned long)pgdir - FREEMEM) / PAGE_SIZE;
 	freemem_pool[node_index].next = -1;//end of freemem list
-	freemem_pool[node_index].swap_status = 0;
 	if(freemem_head < 0){//list empty
 		freemem_head = node_index;
 		k = freemem_head;
