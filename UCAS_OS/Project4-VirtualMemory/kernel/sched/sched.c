@@ -219,7 +219,7 @@ void do_ps(void){
 	int i, j;
 	for(i = 0, j = 0; i < NUM_MAX_TASK; i++){
 		if(pcb[i].status != TASK_EXITED){
-			prints("[%d] PID : %d  STATUS : ", j, pcb[i].pid);
+			prints("[%d] %s : %d  STATUS : ", j, pcb[i].parent_id ? "TID" : "PID", pcb[i].pid);
 			switch(pcb[i].status){
 				case TASK_BLOCKED:
 					prints("BLOCKED "); break;
@@ -272,6 +272,7 @@ pid_t do_spawn(task_info_t *info, void* arg, spawn_mode_t mode, int hart_mask){
 int do_kill(pid_t pid){
 	//TO DO:
 	int i = pid - 1;
+	int t_i;
 	if(i < -1 || i >= NUM_MAX_TASK || pcb[i].status == TASK_EXITED){
 		prints("> [KILL] Can not kill a process that doesn't exist\n");
 		return 0;
@@ -284,6 +285,10 @@ int do_kill(pid_t pid){
 		prints("> [KILL] Can not kill Kernel\n");
 		return 0;
 	}
+	if(pcb[i].parent_id != 0){
+		prints("> [KILL] Do not kill a thread\n");
+		return 0;
+	}
 	if(pcb[i].status != TASK_RUNNING){//not running on the other core
 		list_del(&(pcb[i].list));
 		while(pcb[i].wait_list.next != &(pcb[i].wait_list))
@@ -292,11 +297,13 @@ int do_kill(pid_t pid){
 			do_mutex_lock_release((mutex_lock_t *)pcb[i].lock_list.next);
 		if(pcb[i].parent_id == 0){
 			for(int thread_id = pcb[i].next_thread_id; thread_id; thread_id = pcb[thread_id].next_thread_id){	
-				list_del(&(pcb[thread_id].list));
-				while(pcb[thread_id].wait_list.next != &(pcb[thread_id].wait_list))
-					do_unblock(pcb[thread_id].wait_list.next);
-				while(pcb[thread_id].lock_list.next != &(pcb[thread_id].lock_list))
-				do_mutex_lock_release((mutex_lock_t *)pcb[thread_id].lock_list.next);
+				t_i = thread_id - 1;
+				list_del(&(pcb[t_i].list));
+				while(pcb[t_i].wait_list.next != &(pcb[t_i].wait_list))
+					do_unblock(pcb[t_i].wait_list.next);
+				while(pcb[t_i].lock_list.next != &(pcb[t_i].lock_list))
+				do_mutex_lock_release((mutex_lock_t *)pcb[t_i].lock_list.next);
+				pcb[t_i].status = TASK_EXITED;
 			}
 		}
 		free_mem(pcb[i].pgdir);
@@ -393,7 +400,7 @@ pid_t do_exec(const char* file_name, int argc, char* argv[], spawn_mode_t mode){
      		pcb[i].kernel_sp = allocPage(1) + PAGE_SIZE;
      		pcb[i].user_sp = USER_STACK_ADDR;
      		//map user stack to a pa
-     		ptr_t kva_u_argv_0 = alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir) + PAGE_SIZE;
+     		ptr_t kva_u_argv_0 = alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir, 0) + PAGE_SIZE;
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
      		pcb[i].hart_mask = 3;
@@ -466,7 +473,7 @@ pid_t do_thread_create(int *thread, void (*start_routine)(void*), void *arg){
      		(*current_running)->thread_num++;
      		pcb[i].user_sp = USER_STACK_ADDR + PAGE_SIZE * (*current_running)->thread_num;
      		//map user stack to a pa
-     		alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir);
+     		alloc_page_helper(pcb[i].user_sp - PAGE_SIZE, pcb[i].pgdir, 0);
      		pcb[i].kernel_stack_base = pcb[i].kernel_sp;
      		pcb[i].user_stack_base = pcb[i].user_sp;
      		pcb[i].hart_mask = 3;

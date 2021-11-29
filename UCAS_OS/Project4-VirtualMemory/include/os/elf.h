@@ -139,7 +139,7 @@ static inline int is_elf_format(unsigned char *binary)
 /* prepare_page_for_kva should return a kernel virtual address */
 static inline uintptr_t load_elf(
     unsigned char elf_binary[], unsigned length, uintptr_t pgdir,
-    uintptr_t (*prepare_page_for_va)(uintptr_t va, uintptr_t pgdir))
+    uintptr_t (*prepare_page_for_va)(uintptr_t va, uintptr_t pgdir, int swapable))
 {
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)elf_binary;
     Elf64_Phdr *phdr = NULL;
@@ -169,7 +169,7 @@ static inline uintptr_t load_elf(
                 if (i < phdr->p_filesz) {
                     unsigned char *bytes_of_page =
                         (unsigned char *)prepare_page_for_va(
-                            (uintptr_t)(phdr->p_vaddr + i), pgdir);
+                            (uintptr_t)(phdr->p_vaddr + i), pgdir, 0);
                     kmemcpy(
                         bytes_of_page,
                         elf_binary + phdr->p_offset + i,
@@ -184,7 +184,7 @@ static inline uintptr_t load_elf(
                 } else {
                     long *bytes_of_page =
                         (long *)prepare_page_for_va(
-                            (uintptr_t)(phdr->p_vaddr + i), pgdir);
+                            (uintptr_t)(phdr->p_vaddr + i), pgdir, 0);
                     for (int j = 0;
                          j < NORMAL_PAGE_SIZE / sizeof(long);
                          ++j) {

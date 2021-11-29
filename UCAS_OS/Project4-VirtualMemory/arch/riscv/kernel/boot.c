@@ -73,7 +73,7 @@ void setup_vm()
     enable_vm();
 }
 
-uintptr_t directmap(uintptr_t kva, uintptr_t pgdir)
+uintptr_t directmap(uintptr_t kva, uintptr_t pgdir, int swapable)
 {
     // ignore pgdir
     return kva;

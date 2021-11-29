@@ -109,7 +109,7 @@ static void init_pcb()
      pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
      pcb[0].user_sp = USER_STACK_ADDR;//user va
      //map user stack to a pa
-     alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir);
+     alloc_page_helper(pcb[0].user_sp - PAGE_SIZE, pcb[0].pgdir, 0);
      pcb[0].kernel_stack_base = pcb[0].kernel_sp;
      pcb[0].user_stack_base = pcb[0].user_sp;
      ptr_t entry_point = (ptr_t)load_elf(elf_files[0].file_content,

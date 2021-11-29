@@ -35,7 +35,7 @@ SRC_LIBC	= ./tiny_libc/mailbox.c ./tiny_libc/rand.c ./tiny_libc/printf.c ./tiny_
 SRC_LIBC_ASM	= $(filter %.S %.s,$(SRC_LIBC))
 SRC_LIBC_C	= $(filter %.c,$(SRC_LIBC))
 
-SRC_USER	= ./test/test_shell.elf ./test/rw.elf ./test/fly.elf ./test/consensus.elf ./test/lock.elf ./test/mailbox.elf
+SRC_USER	= ./test/test_shell.elf ./test/rw.elf ./test/fly.elf ./test/consensus.elf ./test/lock.elf ./test/mailbox.elf ./test/swap.elf
 #SRC_TEST	= ./test/test.c ./test/test_shell.c
 #SRC_TEST2	= ./test/test_project2/test_scheduler.c ./test/test_project2/test_sleep.c ./test/test_project2/test_timer.c ./test/test_project2/test_lock.c ./test/test_project2/test_priority.c ./test/test_project2/test_fork.c
 #SRC_TEST3   = ./test/test_project3/test_affinity.c ./test/test_project3/test_barrier.c ./test/test_project3/test_kill.c ./test/test_project3/test_mailbox.c ./test/test_project3/test_multicore.c ./test/test_project3/test_semaphore.c ./test/test_project3/test_wait.c

@@ -46,7 +46,27 @@ void handle_int(regs_context_t *regs, uint64_t interrupt, uint64_t cause)
 
 void handle_pagefault(regs_context_t *regs, uint64_t stval, uint64_t cause){
 	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
-	alloc_page_helper(stval, (*current_running)->pgdir);
+	int swap_node;
+	int pid = (*current_running)->parent_id ? (*current_running)->parent_id : (*current_running)->pid;
+	ptr_t kva;
+	PTE *ppte;
+	//check if there is any on the disk
+	for(swap_node = swapmem_head; swapmem_pool[swap_node % 4096].valid; swap_node--){
+		if((swap_node - 1) % 4096 == swapmem_head)
+			break;
+		if(pid == swapmem_pool[swap_node % 4096].pid && ((stval >> 12) << 12) == swapmem_pool[swap_node % 4096].vaddr){
+			kva = allocPage(1);
+			sbi_sd_read(kva2pa(kva), 8, swap_node * 8);
+			ppte = swapmem_pool[swap_node % 4096].ppte;
+    		set_pfn(ppte, kva2pa(kva) >> NORMAL_PAGE_SHIFT);
+    		set_attribute(
+       		 ppte, _PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE |
+                        _PAGE_EXEC | _PAGE_ACCESSED | _PAGE_DIRTY | _PAGE_USER);
+			swapmem_pool[swap_node % 4096].valid = 0;
+			return ;
+		}
+	}
+	alloc_page_helper(stval, (*current_running)->pgdir, 1);
 }
 void init_exception()
 {
