@@ -22,12 +22,12 @@ USER_LDFLAGS += $(ARCH_DIR)/crt0.o
 SRC_BOOT 	= $(ARCH_DIR)/boot/bootblock.S
 SRC_HEAD    = $(ARCH_DIR)/kernel/head.S $(ARCH_DIR)/kernel/boot.c payload.c ./libs/string.c
 SRC_ARCH	= $(ARCH_DIR)/kernel/trap.S $(ARCH_DIR)/kernel/entry.S $(ARCH_DIR)/kernel/smp.S $(ARCH_DIR)/kernel/start.S $(ARCH_DIR)/sbi/common.c
-SRC_DRIVER	= ./drivers/screen.c
+SRC_DRIVER	= ./drivers/screen.c ./drivers/net.c ./drivers/plic.c ./drivers/emacps/xemacps.c ./drivers/emacps/xemacps_bdring.c ./drivers/emacps/xemacps_control.c ./drivers/emacps/xemacps_example_util.c ./drivers/emacps/xemacps_g.c ./drivers/emacps/xemacps_hw.c ./drivers/emacps/xemacps_intr.c ./drivers/emacps/xemacps_main.c
 SRC_INIT 	= ./init/main.c
 SRC_INT		= ./kernel/irq/irq.c
 SRC_LOCK	= ./kernel/locking/lock.c
 SRC_SCHED	= ./kernel/sched/sched.c ./kernel/sched/time.c ./kernel/sched/smp.c ./kernel/sched/mbox.c
-SRC_MM	= ./kernel/mm/mm.c
+SRC_MM	= ./kernel/mm/mm.c ./kernel/mm/ioremap.c
 SRC_SYSCALL	= ./kernel/syscall/syscall.c
 SRC_LIBS	= ./libs/string.c ./libs/printk.c
 
@@ -35,7 +35,7 @@ SRC_LIBC	= ./tiny_libc/mailbox.c ./tiny_libc/rand.c ./tiny_libc/printf.c ./tiny_
 SRC_LIBC_ASM	= $(filter %.S %.s,$(SRC_LIBC))
 SRC_LIBC_C	= $(filter %.c,$(SRC_LIBC))
 
-SRC_USER	= ./test/test_shell.elf ./test/rw.elf ./test/fly.elf ./test/consensus.elf ./test/lock.elf ./test/mailbox.elf ./test/swap.elf
+SRC_USER	= ./test/test_shell.elf ./test/rw.elf ./test/fly.elf ./test/consensus.elf ./test/lock.elf ./test/mailbox.elf ./test/swap.elf ./test/send.elf ./test/recv.elf
 #SRC_TEST	= ./test/test.c ./test/test_shell.c
 #SRC_TEST2	= ./test/test_project2/test_scheduler.c ./test/test_project2/test_sleep.c ./test/test_project2/test_timer.c ./test/test_project2/test_lock.c ./test/test_project2/test_priority.c ./test/test_project2/test_fork.c
 #SRC_TEST3   = ./test/test_project3/test_affinity.c ./test/test_project3/test_barrier.c ./test/test_project3/test_kill.c ./test/test_project3/test_mailbox.c ./test/test_project3/test_multicore.c ./test/test_project3/test_semaphore.c ./test/test_project3/test_wait.c

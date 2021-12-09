@@ -265,7 +265,8 @@ LONG EmacPsSetupBD(XEmacPs *EmacPsInstancePtr)
     XEmacPs_Bd BdTemplate;
 
     /* Allocate Rx and Tx BD space each */
-    // TODO:
+	RxBdSpacePtr = &(bd_space[0]);
+	TxBdSpacePtr = &(bd_space[0x10000]);
 
     /*
      * Setup RxBD space.
@@ -280,13 +281,31 @@ LONG EmacPsSetupBD(XEmacPs *EmacPsInstancePtr)
      * these again.
      */
     
-    // TODO:
+	XEmacPs_BdClear(&BdTemplate);
 
     /*
      * Create the RxBD ring
      */
     
-    // TODO:
+	Status = XEmacPs_BdRingCreate(&(XEmacPs_GetRxRing
+				       (EmacPsInstancePtr)),
+				       (UINTPTR) RxBdSpacePtr,
+				       (UINTPTR) RxBdSpacePtr,
+				       XEMACPS_BD_ALIGNMENT,
+				       RXBD_CNT);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap
+			("Error setting up RxBD space, BdRingCreate");
+		return XST_FAILURE;
+	}
+
+	Status = XEmacPs_BdRingClone(&(XEmacPs_GetRxRing(EmacPsInstancePtr)),
+				      &BdTemplate, XEMACPS_RECV);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap
+			("Error setting up RxBD space, BdRingClone");
+		return XST_FAILURE;
+	}
 
     /*
      * Setup TxBD space.
@@ -300,13 +319,31 @@ LONG EmacPsSetupBD(XEmacPs *EmacPsInstancePtr)
      * here.
      */
     
-    // TODO:
+	XEmacPs_BdClear(&BdTemplate);
+	XEmacPs_BdSetStatus(&BdTemplate, XEMACPS_TXBUF_USED_MASK);
 
     /*
      * Create the TxBD ring
      */
     
-    // TODO:
+	Status = XEmacPs_BdRingCreate(&(XEmacPs_GetTxRing
+				       (EmacPsInstancePtr)),
+				       (UINTPTR) TxBdSpacePtr,
+				       (UINTPTR) TxBdSpacePtr,
+				       XEMACPS_BD_ALIGNMENT,
+				       TXBD_CNT);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap
+			("Error setting up TxBD space, BdRingCreate");
+		return XST_FAILURE;
+	}
+	Status = XEmacPs_BdRingClone(&(XEmacPs_GetTxRing(EmacPsInstancePtr)),
+				      &BdTemplate, XEMACPS_SEND);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap
+			("Error setting up TxBD space, BdRingClone");
+		return XST_FAILURE;
+	}
 
     return XST_SUCCESS;
 }
@@ -453,13 +490,17 @@ LONG EmacPsInit(XEmacPs *EmacPsInstancePtr)
 			   XEMACPS_IXR_ALL_MASK);
 
     /* Enable TX and RX interrupts */
-    /* TODO: 
+    /* 
      * NOTE: you can use XEmacPs_IntEnable and XEmacPs_IntDisable
      *       enable these bits: 
      *          (XEMACPS_IXR_TX_ERR_MASK | XEMACPS_IXR_RX_ERR_MASK |
      *          (u32)XEMACPS_IXR_FRAMERX_MASK | (u32)XEMACPS_IXR_TXCOMPL_MASK)
      */
-
+     if(!net_poll_mode){
+	     XEmacPs_IntEnable(EmacPsInstancePtr,
+    	 				   (XEMACPS_IXR_TX_ERR_MASK | XEMACPS_IXR_RX_ERR_MASK |
+    	                   (u32)XEMACPS_IXR_FRAMERX_MASK | (u32)XEMACPS_IXR_TXCOMPL_MASK));
+	}
     return status;
 }
 
@@ -477,21 +518,41 @@ LONG EmacPsSend(XEmacPs *EmacPsInstancePtr, EthernetFrame *TxFrame, size_t lengt
      * being set as the lead BD.
      */
 
-    // TODO:
+	Status = XEmacPs_BdRingAlloc(&(XEmacPs_GetTxRing(EmacPsInstancePtr)),
+				      1, &Bd1Ptr);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap("Error allocating TxBD");
+		return XST_FAILURE;
+	}
 
     /*
      * Setup first TxBD
      */
     
-    // TODO:
     // set address, length, clear tx used bit
     // set `last` bit if needed
+	XEmacPs_BdSetAddressTx(Bd1Ptr, (UINTPTR)&TxFrame);
+	XEmacPs_BdSetLength(Bd1Ptr, TxFrameLength);
+	XEmacPs_BdClearTxUsed(Bd1Ptr);
+	XEmacPs_BdSetLast(Bd1Ptr);
 
-
-    // TODO: remember to flush dcache
+	/*
+	 * Enqueue to HW
+	 */
+	Status = XEmacPs_BdRingToHw(&(XEmacPs_GetTxRing(EmacPsInstancePtr)),
+				     1, Bd1Ptr);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap("Error committing TxBD to HW");
+		return XST_FAILURE;
+	}
+	
+    // remember to flush dcache
     Xil_DCacheFlushRange(0, 64);
 
-    // TODO: set tx queue base
+	/*
+	 * Set the Queue pointers
+	 */
+    XEmacPs_SetQueuePtr(EmacPsInstancePtr, EmacPsInstancePtr->TxBdRing.BaseBdAddr, 0, XEMACPS_SEND);
 
     /* Enable transmitter if not already enabled */
 	if ((EmacPsInstancePtr->Options & (u32)XEMACPS_TRANSMITTER_ENABLE_OPTION)!=0x00000000U) {
@@ -504,7 +565,7 @@ LONG EmacPsSend(XEmacPs *EmacPsInstancePtr, EthernetFrame *TxFrame, size_t lengt
 		}
 	}
 
-	// start transmit
+	/* Start transmit */
     XEmacPs_Transmit(EmacPsInstancePtr);
 
     return Status;
@@ -512,18 +573,25 @@ LONG EmacPsSend(XEmacPs *EmacPsInstancePtr, EthernetFrame *TxFrame, size_t lengt
 
 LONG EmacPsWaitSend(XEmacPs *EmacPsInstancePtr)
 {
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     LONG Status = XST_SUCCESS;
     XEmacPs_Bd *Bd1Ptr;
+    u32 txsr;
 
     /*
      * Wait for transmission to complete
      */
     while (!FramesTx) {
-        // TODO:
+    	if(net_poll_mode){
+    		txsr = XEmacPs_ReadReg(EmacPsInstancePtr->Config.BaseAddress, XEMACPS_TXSR_OFFSET);
+    		if (txsr & XEMACPS_TXSR_TXCOMPL_MASK)
+    			FramesTx++;
+    	}else
+	        do_block(&((*current_running)->list), &net_send_queue);
     }
 
     // maybe you need
-    // --FramesTx;
+    --FramesTx;
 
     // NOTE: remember to flush dcache
     Xil_DCacheFlushRange(0, 64);
@@ -532,7 +600,12 @@ LONG EmacPsWaitSend(XEmacPs *EmacPsInstancePtr)
      * Since we have only submitted 1 to hardware, then there
      * should be only 1 ready for post processing.
      */
-    // TODO:
+    if (XEmacPs_BdRingFromHwTx(&(XEmacPs_GetTxRing(EmacPsInstancePtr)),
+				    1, &Bd1Ptr) == 0) {
+		EmacPsUtilErrorTrap
+			("TxBDs were not ready for post processing");
+		return XST_FAILURE;
+	}
 
     /*
      * Examine the TxBDs.
@@ -542,7 +615,13 @@ LONG EmacPsWaitSend(XEmacPs *EmacPsInstancePtr)
      * handler. So we just return these BDs to the free list.
      */
 
-    // TODO:
+	Status = XEmacPs_BdRingFree(&(XEmacPs_GetTxRing(EmacPsInstancePtr)),
+				     1, Bd1Ptr);
+
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap("Error freeing up TxBDs");
+		return XST_FAILURE;
+	}
 
     return Status;
 }
@@ -551,6 +630,7 @@ LONG EmacPsRecv(XEmacPs *EmacPsInstancePtr, EthernetFrame *RxFrame, int num_pack
 {
     LONG Status = XST_SUCCESS;
     XEmacPs_Bd BdTemplate;
+    XEmacPs_Bd *Bd1Ptr, *tempBdPtr;
 
     /* disable receiver */
 	if ((EmacPsInstancePtr->Options & XEMACPS_RECEIVER_ENABLE_OPTION) != 0x00000000U) {
@@ -569,8 +649,31 @@ LONG EmacPsRecv(XEmacPs *EmacPsInstancePtr, EthernetFrame *RxFrame, int num_pack
      * Setup buffer address to associated BD.
      * Remember to set wrap bit and clear owner bit.
      */
-
-    // TODO:
+	Status = XEmacPs_BdRingAlloc(&(XEmacPs_GetRxRing(EmacPsInstancePtr)),
+				      num_packet, &Bd1Ptr);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap("Error allocating RxBD");
+		return XST_FAILURE;
+	}
+	
+    for (int i = 0, tempBdPtr = Bd1Ptr; i < num_packet;
+    	i++, tempBdPtr = XEmacPs_BdRingNext(&(XEmacPs_GetRxRing(EmacPsInstancePtr)), tempBdPtr)){
+        	XEmacPs_BdSetAddressRx(tempBdPtr, (UINTPTR)(RxFrame + i));
+        	XEmacPs_BdClearRxNew(tempBdPtr);
+        	XEmacPs_BdClearRxWrap(tempBdPtr);
+        	if (i == num_packet - 1)
+            	XEmacPs_BdSetRxWrap(tempBdPtr);
+    }
+    
+	/*
+	 * Enqueue to HW
+	 */
+    Status = XEmacPs_BdRingToHw(&(XEmacPs_GetRxRing(EmacPsInstancePtr)),
+                                num_packet, BdRxPtr);
+	if (Status != XST_SUCCESS) {
+        EmacPsUtilErrorTrap("Error committing RxBD to HW");
+        return XST_FAILURE;
+    }
 
 
     // flush again!
@@ -578,7 +681,7 @@ LONG EmacPsRecv(XEmacPs *EmacPsInstancePtr, EthernetFrame *RxFrame, int num_pack
     /*
      * Set the Queue pointers
      */
-    // TODO: set rx queue base
+    XEmacPs_SetQueuePtr(EmacPsInstancePtr, EmacPsInstancePtr->RxBdRing.BaseBdAddr, 0, XEMACPS_RECV);
 
     
 	/* Enable receiver if not already enabled */
@@ -597,32 +700,64 @@ LONG EmacPsRecv(XEmacPs *EmacPsInstancePtr, EthernetFrame *RxFrame, int num_pack
 
 LONG EmacPsWaitRecv(XEmacPs *EmacPsInstancePtr, int num_packet, u32* RxFrLen)
 {
+	current_running = get_current_cpu_id() ? &current_running_1 : &current_running_0;
     LONG Status = XST_SUCCESS;
+    u32 rxsr;
 
     u32 NumRxBuf    = 0;
-    XEmacPs_Bd *BdRxPtr;
+    XEmacPs_Bd *BdRx1Ptr, *tempBdPtr;
 
     /*
      * Wait for Rx indication
      */
     int tmprx = 0;
-    while (!FramesRx) {
-        // TODO:
+    while (!(FramesRx == num_packet)) {
+    	if(net_poll_mode){
+    		rxsr = XEmacPs_ReadReg(EmacPsInstancePtr->Config.BaseAddress, XEMACPS_RXSR_OFFSET);
+    		if (rxsr & XEMACPS_RXSR_FRAMERX_MASK){
+    			NumRxBuf += XEmacPs_BdRingFromHwRx(&(XEmacPs_GetRxRing
+					  		(EmacPsInstancePtr)), num_packet,
+					 		&BdRx1Ptr);
+				FramesRx = NumRxBuf;
+			}
+    	}else
+	        do_block(&((*current_running)->list), &net_recv_queue);
     }
 
     // remember to flush dcache
     Xil_DCacheFlushRange(0, 64);
 
     // maybe you need
-    // FramesRx = 0;
+    FramesRx = 0;
 
     /*
      * Now that the frame has been received, post process our RxBD.
      * Since we have submitted to hardware.
      */
+    if(!net_poll_mode)
+		NumRxBuf = XEmacPs_BdRingFromHwRx(&(XEmacPs_GetRxRing
+						  (EmacPsInstancePtr)), num_packet,
+						 &BdRx1Ptr);
+	if (NumRxBuf != num_packet) {
+		EmacPsUtilErrorTrap("RxBD was not ready for post processing");
+		return XST_FAILURE;
+	}
+    for(int i = 0, tempBdPtr = BdRx1Ptr; i < num_packet;
+    	i++, tempBdPtr = XEmacPs_BdRingNext(&(XEmacPs_GetRxRing(EmacPsInstancePtr)), tempBdPtr)){
+    		// NOTE: you can get length from BD
+    		RxFrLen[i] = XEmacPs_BdGetLength(tempBdPtr);
+    }
     
-    // TODO:
-    // NOTE: you can get length from BD
+	/*
+	 * Return the RxBD back to the channel for later allocation. Free
+	 * the exact number we just post processed.
+	 */
+	Status = XEmacPs_BdRingFree(&(XEmacPs_GetRxRing(EmacPsInstancePtr)),
+				     NumRxBuf, BdRx1Ptr);
+	if (Status != XST_SUCCESS) {
+		EmacPsUtilErrorTrap("Error freeing up RxBDs");
+		return XST_FAILURE;
+	}
     
     return Status;
 }
@@ -928,15 +1063,14 @@ static LONG EmacPsResetDevice(XEmacPs *EmacPsInstancePtr)
  *****************************************************************************/
 static void XEmacPsSendHandler(void *Callback)
 {
-    // TODO: you finish sending packet now
     XEmacPs *EmacPsInstancePtr = (XEmacPs *)Callback;
 
     /*
      * Disable the transmit related interrupts
      */
-    /*XEmacPs_IntDisable(
+    XEmacPs_IntDisable(
         EmacPsInstancePtr,
-        (XEMACPS_IXR_TXCOMPL_MASK | XEMACPS_IXR_TX_ERR_MASK));*/
+        (XEMACPS_IXR_TXCOMPL_MASK | XEMACPS_IXR_TX_ERR_MASK));
 
     /*
      * Increment the counter so that main thread knows something
@@ -944,11 +1078,11 @@ static void XEmacPsSendHandler(void *Callback)
      */
     FramesTx++;
 
-    /*if (!net_poll_mode) {
+    if (!net_poll_mode) {
         if (!list_empty(&net_send_queue)) {
-            do_unblock(net_send_queue.next);
+            do_unblock(net_send_queue.prev);
         }
-    }*/
+    }
 }
 
 /****************************************************************************/
@@ -968,15 +1102,14 @@ static void XEmacPsSendHandler(void *Callback)
  *****************************************************************************/
 static void XEmacPsRecvHandler(void *Callback)
 {
-    // TODO: you finish receiving packet now
     XEmacPs *EmacPsInstancePtr = (XEmacPs *)Callback;
 
     /*
      * Disable the transmit related interrupts
      */
-    /*XEmacPs_IntDisable(
+    XEmacPs_IntDisable(
         EmacPsInstancePtr,
-        (XEMACPS_IXR_FRAMERX_MASK | XEMACPS_IXR_RX_ERR_MASK));*/
+        (XEMACPS_IXR_FRAMERX_MASK | XEMACPS_IXR_RX_ERR_MASK));
 
     /*
      * Increment the counter so that main thread knows something
@@ -984,11 +1117,11 @@ static void XEmacPsRecvHandler(void *Callback)
      */
     FramesRx++;
     
-    /*if (!net_poll_mode) {
+    if (!net_poll_mode) {
         if (!list_empty(&net_recv_queue)) {
-            do_unblock(net_recv_queue.next);
+            do_unblock(net_recv_queue.prev);
         }
-    }*/
+    }
 
     Xil_DCacheInvalidateRange((UINTPTR)&RxFrame, sizeof(EthernetFrame));
 }

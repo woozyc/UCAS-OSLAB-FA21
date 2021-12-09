@@ -72,9 +72,11 @@ void handle_pagefault(regs_context_t *regs, uint64_t stval, uint64_t cause){
 }
 void handle_irq(regs_context_t *regs, int irq)
 {
-    // TODO: 
+    // TO DO: 
     // handle external irq from network device
+    XEmacPs_IntrHandler(&EmacPsInstance);
     // let PLIC know that handle_irq has been finished
+    plic_irq_eoi(irq);
 }
 
 void init_exception()
@@ -83,16 +85,19 @@ void init_exception()
     /* note: handle_int, handle_syscall, handle_other, etc.*/
 	int i;
 	for(i = 0; i < IRQC_COUNT; i++){
-		irq_table[i] = &handle_int;
+		irq_table[i] = &handle_other;
 	}
 	for(i = 0; i < EXCC_COUNT; i++){
 		exc_table[i] = &handle_other;
 	}
+    irq_table[IRQC_S_TIMER] = &handle_int;
+    irq_table[IRQC_S_EXT] = &plic_handle_irq;
 	exc_table[EXCC_SYSCALL] = &handle_syscall;
+	/*
 	exc_table[EXCC_INST_PAGE_FAULT] = &handle_pagefault;
 	exc_table[EXCC_LOAD_PAGE_FAULT] = &handle_pagefault;
 	exc_table[EXCC_STORE_PAGE_FAULT] = &handle_pagefault;
-
+*/
     setup_exception();
 }
 

@@ -95,5 +95,4 @@
 #define SYSCALL_NET_RECV 43
 #define SYSCALL_NET_SEND 44
 #define SYSCALL_NET_IRQ_MODE 45
-
 #endif

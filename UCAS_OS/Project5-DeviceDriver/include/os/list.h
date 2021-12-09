@@ -45,6 +45,7 @@
 
 // double-linked list
 //   TO DO: use your own list design!!
+#define LIST_HEAD(name) struct list_node name = {&(name), &(name)}
 typedef struct list_node
 {
     struct list_node *next, *prev;
@@ -69,6 +70,10 @@ static inline void list_del(list_node_t *node){
 		node->next = NULL;
 		node->prev = NULL;
 	}
+}
+static inline int list_empty(const list_head *head)
+{
+    return head->next == head;
 }
 
 #endif

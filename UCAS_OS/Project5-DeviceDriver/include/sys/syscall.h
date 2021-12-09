@@ -85,4 +85,7 @@ void sys_net_send(uintptr_t addr, size_t length);
 void sys_net_irq_mode(int mode);
 
 void sys_exec_show();
+long sys_net_recv(uintptr_t addr, size_t length, int num_packet, size_t* frLength);
+void sys_net_send(uintptr_t addr, size_t length);
+void do_net_irq_mode(int mode);
 #endif

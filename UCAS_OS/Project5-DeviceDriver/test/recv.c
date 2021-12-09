@@ -5,7 +5,7 @@
 
 #include <os.h>
 
-#define MAX_RECV_CNT 32
+#define MAX_RECV_CNT 64
 char recv_buffer[MAX_RECV_CNT * sizeof(EthernetFrame)];
 size_t recv_length[MAX_RECV_CNT];
 

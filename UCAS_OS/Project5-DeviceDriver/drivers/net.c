@@ -11,28 +11,55 @@ EthernetFrame rx_buffers[RXBD_CNT];
 EthernetFrame tx_buffer;
 uint32_t rx_len[RXBD_CNT];
 
-int net_poll_mode;
+int net_poll_mode = 1;
 
 volatile int rx_curr = 0, rx_tail = 0;
 
 long do_net_recv(uintptr_t addr, size_t length, int num_packet, size_t* frLength)
 {
-    // TODO: 
+    // TO DO: 
     // receive packet by calling network driver's function
     // wait until you receive enough packets(`num_packet`).
     // maybe you need to call drivers' receive function multiple times ?
-    return ret;
+    int rest_num = num_packet;
+    int recv_num;
+    while(rest_num > 0){
+    	recv_num = (rest_num > 32) ? 32 : _num_packet;
+    	
+        EmacPsRecv(&EmacPsInstance, kva2pa(rx_buffers), recv_num); 
+        EmacPsWaitRecv(&EmacPsInstance, recv_num, rx_len);
+        
+        for (int i = 0; i < recv_num; i++){
+            kmemcpy(addr, rx_buffers + i, rx_len[i]);
+            addr += rx_len[i];
+            *frLength = rx_len[i];
+            frLength++;
+        }
+        rest_num -= recv_num;
+    }
+    return 1;
 }
 
 void do_net_send(uintptr_t addr, size_t length)
 {
-    // TODO:
-    // send all packet
-    // maybe you need to call drivers' send function multiple times ?
+    // TO DO:
+    // send 1 packet
+    kmemcpy(&tx_buffer, addr, length);
+    EmacPsSend(&EmacPsInstance, kva2pa(&tx_buffer), length);
+    EmacPsWaitSend(&EmacPsInstance);
 }
 
 void do_net_irq_mode(int mode)
 {
-    // TODO:
+    // TO DO:
     // turn on/off network driver's interrupt mode
+    if(mode)
+	    XEmacPs_IntEnable(EmacPsInstancePtr,
+     					  (XEMACPS_IXR_TX_ERR_MASK | XEMACPS_IXR_RX_ERR_MASK |
+     					  (u32)XEMACPS_IXR_FRAMERX_MASK | (u32)XEMACPS_IXR_TXCOMPL_MASK));
+   else
+   		XEmacPs_IntDisable(EmacPsInstancePtr,
+     					   (XEMACPS_IXR_TX_ERR_MASK | XEMACPS_IXR_RX_ERR_MASK |
+     					   (u32)XEMACPS_IXR_FRAMERX_MASK | (u32)XEMACPS_IXR_TXCOMPL_MASK));
+	net_poll_mode = mode;
 }
