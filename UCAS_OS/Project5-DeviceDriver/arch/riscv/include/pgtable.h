@@ -3,6 +3,7 @@
 
 #include <type.h>
 #include <sbi.h>
+#include <io.h>
 
 #define SATP_MODE_SV39 8
 #define SATP_MODE_SV48 9
@@ -39,6 +40,11 @@ static inline void flush_icache_all(void)
 {
     local_flush_icache_all();
     sbi_remote_fence_i(NULL);
+}
+
+static inline void local_flush_dcache_all(void)
+{
+    dmb();
 }
 
 static inline void flush_tlb_all(void)

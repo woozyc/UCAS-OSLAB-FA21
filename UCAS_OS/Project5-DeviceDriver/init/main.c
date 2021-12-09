@@ -50,6 +50,8 @@
 #include <plic.h>
 #include <emacps/xemacps_example.h>
 #include <net.h>
+#include <os/ioremap.h>
+#include <assert.h>
 
 extern void ret_from_exception();
 extern void __global_pointer$();

@@ -1,5 +1,6 @@
 #include <os/mm.h>
 #include <os/string.h>
+#include <os/smp.h>
 #include <os/sched.h>
 #include <os/stdio.h>
 #include <pgtable.h>
@@ -171,7 +172,7 @@ void free_mem(uintptr_t pgdir_t){
 		if(pgdir[i] % 2){//pgdir exist. i <=> vpn2
 			pmd = (PTE *)pa2kva(get_pa(pgdir[i]));
 			//pay attention! DO NOT free kernel pages!!!
-			if(pmd > (PTE *)FREEMEM_END || pmd < FREEMEM)
+			if(pmd > (PTE *)FREEMEM_END || pmd < (PTE *)FREEMEM)
 				continue ;
 			
 			for(j = 0; j < 512; j++){//free. j <=> vpn1

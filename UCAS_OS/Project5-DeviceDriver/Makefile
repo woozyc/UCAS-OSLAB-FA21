@@ -4,7 +4,7 @@ CROSS_PREFIX = riscv64-unknown-linux-gnu-
 CC = ${CROSS_PREFIX}gcc
 AR = ${CROSS_PREFIX}ar
 OBJDUMP = ${CROSS_PREFIX}objdump
-CFLAGS = -O0 -nostdlib -T riscv.lds -Wall -mcmodel=medany -Iinclude -Idrivers -nostdinc -g -fvar-tracking -ffreestanding
+CFLAGS = -O0 -nostdlib -T riscv.lds -Wall -mcmodel=medany -Iinclude -Idrivers -nostdinc -g -fvar-tracking -ffreestanding -Wno-unused-variable -Wno-return-type
 USER_CFLAGS = -O0 -nostdlib -T user_riscv.lds -Wall -mcmodel=medany -Itest -Itiny_libc/include -Iinclude -nostdinc -g -fvar-tracking
 USER_LDFLAGS = -L./ -ltiny_libc
 DISK = /dev/sdb

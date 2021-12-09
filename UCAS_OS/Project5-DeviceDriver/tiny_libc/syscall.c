@@ -142,15 +142,15 @@ void sys_exec_show()
 }
 long sys_net_recv(uintptr_t addr, size_t length, int num_packet, size_t* frLength)
 {
-    return invoke_syscall(SYSCALL_NET_RECV, addr, length, num_packet, frLength);
+    return invoke_syscall(SYSCALL_NET_RECV, (long)addr, (long)length, (long)num_packet, (long)frLength);
 }
 void sys_net_send(uintptr_t addr, size_t length)
 {
-    invoke_syscall(SYSCALL_NET_SEND, addr, length, IGNORE, IGNORE);
+    invoke_syscall(SYSCALL_NET_SEND, (long)addr, (long)length, IGNORE, IGNORE);
 }
-void do_net_irq_mode(int mode)
+void sys_net_irq_mode(int mode)
 {
-    invoke_syscall(SYSCALL_NET_IRQ_MODE, mode, IGNORE, IGNORE, IGNORE);
+    invoke_syscall(SYSCALL_NET_IRQ_MODE, (long)mode, IGNORE, IGNORE, IGNORE);
 }
 /* do not use in project2
 int sys_fork()

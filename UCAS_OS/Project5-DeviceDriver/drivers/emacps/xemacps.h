@@ -343,6 +343,8 @@ extern "C" {
 
 /***************************** Include Files ********************************/
 
+#include <os/stdio.h>
+
 #include "xil_types.h"
 #include "xstatus.h"
 #include "xemacps_hw.h"
@@ -843,7 +845,7 @@ void XEmacPs_DMABLengthUpdate(XEmacPs *InstancePtr, s32 BLength);
 }
 #endif
 
-#define xil_printf printk
+#define xil_printf prints
 
 #define MACB_ADDR_REMAP(ADDR)                                              \
         (((uint32_t)0x50000000) | (((uint32_t)(ADDR)) & ((uint32_t)0x0FFFFFFF)))

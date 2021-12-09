@@ -15,7 +15,7 @@ void *ioremap(unsigned long phys_addr, unsigned long size)
     while(size > 0){
 	    uint64_t va = io_base;
     	va &= VA_MASK;
-    	PTE *pgdir = (PTE *)pgdir_t;
+    	PTE *pgdir = (PTE *)pa2kva(PGDIR_PA);
     	uint64_t vpn2 = va >> (NORMAL_PAGE_SHIFT + PPN_BITS + PPN_BITS);
     	uint64_t vpn1 = (vpn2 << PPN_BITS) ^
     	                (va >> (NORMAL_PAGE_SHIFT + PPN_BITS));
@@ -53,7 +53,7 @@ void *ioremap(unsigned long phys_addr, unsigned long size)
     	i++;
     }
     local_flush_tlb_all();
-    return va_start;
+    return (void *)va_start;
 }
 
 void iounmap(void *io_addr)

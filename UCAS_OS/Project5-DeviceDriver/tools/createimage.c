@@ -181,7 +181,7 @@ static void write_os_size(int nbytes, FILE * img, int count)
 	//save pointer
 	long pointer = ftell(img);
 	int sec = nbytes / 512;
-	char sections[4] = {(char)(sec % 256), (char)(sec / 256)};//word
+	//char sections[4] = {(char)(sec % 256), (char)(sec / 256)};//word
     if(count){//not bootloader
     	fseek(img, OSSIZE_LOC_BASE - 4 * count + 1, SEEK_SET);//0x502001fc - 4, - 8...
     	fwrite(&sec, sizeof(sec), 1, img);

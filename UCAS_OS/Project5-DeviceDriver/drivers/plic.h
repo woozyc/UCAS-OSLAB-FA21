@@ -10,7 +10,7 @@ extern int plic_init(uintptr_t plic_regs_addr, u32 nr_irqs);
  * and disables the interrupt, so there's nothing else to do.
  */
 struct pt_regs;
-extern void plic_handle_irq(regs_context_t *regs);
+extern void plic_handle_irq(regs_context_t *regs, uint64_t stval, uint64_t cause);
 
 /* end of irq handling */
 extern void plic_irq_eoi(int hwirq);

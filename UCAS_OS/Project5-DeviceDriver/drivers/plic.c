@@ -19,6 +19,7 @@
 #include <io.h>
 #include <csr.h>
 #include <os/irq.h>
+#include <os/stdio.h>
 
 #include <plic.h>
 
@@ -117,7 +118,7 @@ void plic_irq_eoi(int hwirq)
  * that source ID back to the same claim register.  This automatically enables
  * and disables the interrupt, so there's nothing else to do.
  */
-void plic_handle_irq(regs_context_t *regs)
+void plic_handle_irq(regs_context_t *regs, uint64_t stval, uint64_t cause)
 {
 	struct plic_handler *handler = &plic_handlers;
 	void *claim = handler->hart_base + CONTEXT_CLAIM;
@@ -140,7 +141,7 @@ int plic_init(uintptr_t plic_regs_addr, u32 nr_irqs)
 
     handler = &plic_handlers;
     if (handler->present) {
-        printk("handler already present.\n");
+        prints("[> PLIC] handler already present.\n");
         threshold = 0xffffffff;
         goto done;
     }

@@ -4,3 +4,4 @@
 /UCAS_OS/Project4-VirtualMemory/payload.c filter=lfs diff=lfs merge=lfs -text
 /UCAS_OS/Project5-DeviceDriver/kernel/user_programs.c filter=lfs diff=lfs merge=lfs -text
 /UCAS_OS/Project5-DeviceDriver/payload.c filter=lfs diff=lfs merge=lfs -text
+/UCAS_OS/Project5-DeviceDriver/kernel.txt filter=lfs diff=lfs merge=lfs -text

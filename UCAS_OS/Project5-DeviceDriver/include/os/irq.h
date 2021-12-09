@@ -87,6 +87,8 @@ extern void clear_interrupt(void);
 extern void enable_preempt(void);
 extern void disable_preempt(void);
 
+void handle_irq(regs_context_t *regs, int irq);
+
 extern uintptr_t riscv_dtb;
 
 #endif

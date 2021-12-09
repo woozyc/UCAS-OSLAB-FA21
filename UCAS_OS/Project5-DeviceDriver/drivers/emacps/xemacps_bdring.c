@@ -329,7 +329,7 @@ LONG XEmacPs_BdRingClone(XEmacPs_BdRing * RingPtr, XEmacPs_Bd * SrcBdPtr,
 	 */
     CurBd = RingPtr->BaseBdAddr;
     for (i = 0U; i < RingPtr->AllCnt; i++) {
-        memcpy((void *)CurBd, SrcBdPtr, sizeof(XEmacPs_Bd));
+        memcpy((void *)CurBd, (uint8_t *)SrcBdPtr, sizeof(XEmacPs_Bd));
         CurBd += RingPtr->Separation;
     }
 
