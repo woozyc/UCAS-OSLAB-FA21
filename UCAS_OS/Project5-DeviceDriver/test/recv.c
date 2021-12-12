@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
     if(argc > 2) {        
         if (strcmp(argv[2], "1") == 0) {
             mode = 1;
+        }else if (strcmp(argv[2], "0") == 0) {
+            mode = 0;
         }
     }
 

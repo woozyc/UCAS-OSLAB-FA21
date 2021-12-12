@@ -121,7 +121,7 @@ LONG EmacPsSend(XEmacPs *EmacPsInstancePtr, EthernetFrame *TxFrame, size_t lengt
 LONG EmacPsWaitSend(XEmacPs *EmacPsInstancePtr);
 LONG EmacPsRecv(XEmacPs *EmacPsInstancePtr, EthernetFrame *RxFrame, int num_packet);
 LONG EmacPsWaitRecv(XEmacPs *EmacPsInstancePtr, int num_packet, u32* RxFrLen);
-LONG EmacPsSetupBD(XEmacPs *EmacPsInstancePtr);
+LONG EmacPsSetupBD(XEmacPs *EmacPsInstancePtr, int mode);
 void XEmacPsClkSetup(XEmacPs *EmacPsInstancePtr, u32 speed);
 
 u32 XEmacPsDetectPHY(XEmacPs * EmacPsInstancePtr);

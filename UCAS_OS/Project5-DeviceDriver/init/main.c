@@ -24,7 +24,7 @@
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * * * * * */
 
-#define DEBUG
+//#define DEBUG
 
 #include <common.h>
 #include <os/irq.h>

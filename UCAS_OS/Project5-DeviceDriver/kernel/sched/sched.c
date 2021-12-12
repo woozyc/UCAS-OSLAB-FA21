@@ -305,7 +305,7 @@ int do_kill(pid_t pid){
 				pcb[t_i].status = TASK_EXITED;
 			}
 		}
-		free_mem(pcb[i].pgdir);
+		//free_mem(pcb[i].pgdir);
 		do_scheduler();
 	}
 	pcb[i].status = TASK_EXITED;

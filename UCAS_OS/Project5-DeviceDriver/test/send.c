@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
     if(argc > 1) {
         if (strcmp(argv[1], "1") == 0) {
             mode = 1;
+        }else if (strcmp(argv[1], "0") == 0) {
+            mode = 0;
         }
     }
     sys_net_irq_mode(mode);
