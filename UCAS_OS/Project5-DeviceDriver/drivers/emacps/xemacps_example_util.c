@@ -56,6 +56,7 @@
 /***************************** Include Files ********************************/
 
 #include "xemacps_example.h"
+#include <os/sched.h>
 
 /************************** Variable Definitions ****************************/
 
@@ -1039,5 +1040,6 @@ void EmacPsUtilErrorTrap(const char *Message)
 	Count++;
 
 	xil_printf("Error: %s\r\n", Message);
-	for(;;);
+	//for(;;);
+	do_exit();
 }

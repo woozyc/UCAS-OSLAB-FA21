@@ -106,6 +106,24 @@ static void init_pcb()
      /* initialize all of your pcb and add them into ready_queue     */
      init_list_head(&ready_queue);
      int i;
+     //init other pcbs
+     for(i = 0; i < NUM_MAX_TASK; i++){
+     	pcb[i].status = TASK_EXITED;
+     	pcb[i].pid = i + 1;
+     	//pcb[i].kernel_sp = allocPage(1);
+     	//pcb[i].user_sp = allocPage(1);
+     	//pcb[i].kernel_stack_base = pcb[i].kernel_sp;
+     	//pcb[i].user_stack_base = pcb[i].user_sp;
+     	init_list_head(&(pcb[i].wait_list));
+     	init_list_head(&(pcb[i].lock_list));
+     }
+
+    /* remember to initialize `current_running`*/
+     current_running_0 = &pid0_pcb_0;
+     current_running_1 = &pid0_pcb_1;
+}
+
+static void init_shell(){
      //init shell pcb
      pcb[0].pid = 1;
      //init pgtable
@@ -113,6 +131,7 @@ static void init_pcb()
      clear_pgdir(pcb[0].pgdir);
      //copy kernel pgtable
 	 share_pgtable(pcb[0].pgdir, pa2kva(PGDIR_PA));
+	 ((PTE *)(pcb[0].pgdir))[1] = (PTE )0;
 	 //set stack va
      pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
      pcb[0].user_sp = USER_STACK_ADDR;//user va
@@ -139,23 +158,7 @@ static void init_pcb()
      init_pcb_stack(pcb[0].kernel_sp, pcb[0].user_sp, entry_point, pcb, 0, (ptr_t)NULL);
      //add to ready_queue
      list_add(&(pcb[0].list), &ready_queue);
-     //init other pcbs
-     for(i = 1; i < NUM_MAX_TASK; i++){
-     	pcb[i].status = TASK_EXITED;
-     	pcb[i].pid = i + 1;
-     	//pcb[i].kernel_sp = allocPage(1);
-     	//pcb[i].user_sp = allocPage(1);
-     	//pcb[i].kernel_stack_base = pcb[i].kernel_sp;
-     	//pcb[i].user_stack_base = pcb[i].user_sp;
-     	init_list_head(&(pcb[i].wait_list));
-     	init_list_head(&(pcb[i].lock_list));
-     }
-
-    /* remember to initialize `current_running`*/
-     current_running_0 = &pid0_pcb_0;
-     current_running_1 = &pid0_pcb_1;
 }
-
 static void err_syscall(int64_t num){
 	printk("> [Error] Syscall number error.\n\r");
 	while(1);
@@ -301,11 +304,6 @@ int main()
     	    printk("Error: initialize ethernet driver failed!, ps_init\n\r");
     	    assert(0);
     	}
-    	status = EmacPsSetupBD(&EmacPsInstance);
-    	if (status != XST_SUCCESS) {
-    	    printk("Error: initialize ethernet driver failed!, setup_bdring\n\r");
-    	    assert(0);
-    	}
     	
     	
     	// init interrupt (^_^)
@@ -323,6 +321,8 @@ int main()
     	init_screen();
     	printk("> [INIT] SCREEN initialization succeeded.\n\r");
     	//printk("> [INIT] SCREEN initialization skipped.\n\r");
+		init_shell();
+    	printk("> [INIT] SHELL initialization succeeded.\n\r");
 		
 		//init free mem page list
 	    //free_list->next = NULL;

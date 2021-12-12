@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");*/
     // for(;;);
-    int mode = 0;
+    int mode = 1;
     int size = 1;
     if(argc > 1) {
         size = atol(argv[1]);

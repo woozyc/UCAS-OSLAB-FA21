@@ -325,7 +325,7 @@ void do_exit(void){
 		do_unblock((*current_running)->wait_list.next);
 	while((*current_running)->lock_list.next != &((*current_running)->lock_list))
 		do_mutex_lock_release((mutex_lock_t *)(*current_running)->lock_list.next);
-	free_mem((*current_running)->pgdir);
+	//free_mem((*current_running)->pgdir);
 	do_scheduler();
 }
 

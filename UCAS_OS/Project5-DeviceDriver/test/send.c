@@ -28,7 +28,7 @@ int len[4] = {88, 88, 88, 88};
 
 int main(int argc, char *argv[])
 {
-    int mode = 0;
+    int mode = 1;
     if(argc > 1) {
         if (strcmp(argv[1], "1") == 0) {
             mode = 1;
