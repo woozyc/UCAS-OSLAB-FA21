@@ -335,6 +335,7 @@ void do_mkdir(char *dir){
 		pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))] = alloc_block();
 	}
 	write_inode_SD(sector_temp_2, pa_inode->ino);
+	int new_index = pa_inode->size - 1;
 	//alloc a new inode
 	uint8_t sector_temp_3[512];
 	uint16_t new_ino = alloc_inode();
@@ -348,12 +349,12 @@ void do_mkdir(char *dir){
 	new_inode->time = get_timer();
 	write_inode_SD(sector_temp_3, new_inode->ino);
 	//modify parent dentry
-	unsigned int data_number = pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))];
-	get_datasector(sector_temp_3, data_number, (pa_inode->size % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
-	dentry_t *pa_dentry = ((dentry_t *)sector_temp_3) + pa_inode->size % (512/sizeof(dentry_t));
+	unsigned int data_number = pa_inode->direct[new_index / (BLOCK_SZ/sizeof(dentry_t))];
+	get_datasector(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+	dentry_t *pa_dentry = ((dentry_t *)sector_temp_3) + new_index % (512/sizeof(dentry_t));
 	pa_dentry->ino = new_ino;
 	kmemcpy(pa_dentry->name, dir, len+1);
-	write_datasector_SD(sector_temp_3, data_number, (pa_inode->size % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+	write_datasector_SD(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	//setup new dentry for new directory
 	get_datasector(sector_temp_3, new_datanum, 0);
 	dentry_t *new_dentry = (dentry_t *)sector_temp_3;
@@ -415,7 +416,8 @@ void do_ls(char *mode, char *dir){
 	dentry_t *dentry;
 	inode_t *child_inode;
 	int i;
-	prints("format--[x]:[name], x--0: directory, 1: file\n  ");
+	prints("--total entries: %d\n", inode->size);
+	prints("--[name],[type] type: 0-directory 1-file\n");
 	for(i = 0; i < inode->size; i++){
 		if(i % (512/sizeof(dentry_t)) == 0){
 			//offset in a !!SECTOR!!(512B) reaches 0, read a new data sector
@@ -425,10 +427,10 @@ void do_ls(char *mode, char *dir){
 		dentry = ((dentry_t *)sector_temp_3) + i % (512/sizeof(dentry_t));
 		child_inode = ino2inode(sector_temp_4, dentry->ino);
 		if(extend_mode && child_inode->type == INODE_FILE){
-			prints("\n  %d: %s,\n", child_inode->type, dentry->name);
+			prints("  %s, %d\n", dentry->name, child_inode->type);
 			prints("    inode--%d, links--0, size--%dB\n", child_inode->ino, child_inode->size);
 		}else{
-			prints("%d: %s ", child_inode->type, dentry->name);
+			prints("  %s, %d\n", dentry->name, child_inode->type);
 		}
 	}
 }

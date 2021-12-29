@@ -49,7 +49,7 @@ typedef struct _inode{
 
 typedef struct _dentry{
     uint16_t ino;
-    char name[48];
+    char name[62];
 }dentry_t;
 
 typedef struct _file_des{

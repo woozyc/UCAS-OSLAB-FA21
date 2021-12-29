@@ -230,36 +230,38 @@ static int resolve_command(int len){
 		sys_statfs();
 		return 8;
 	}else if(!strcmp(cmd, "cd")){
-		if(arg_buff[1])
-			sys_cd(arg_buff[1]);
+		if(arg_buff[0])
+			sys_cd(arg_buff[0]);
 		return 9;
 	}else if(!strcmp(cmd, "mkdir")){
-		if(arg_buff[1])
-			sys_mkdir(arg_buff[1]);
+		if(arg_buff[0])
+			sys_mkdir(arg_buff[0]);
 		return 10;
 	}else if(!strcmp(cmd, "rmdir")){
-		if(arg_buff[1])
-			sys_rmdir(arg_buff[1]);
+		if(arg_buff[0])
+			sys_rmdir(arg_buff[0]);
 		return 11;
 	}else if(!strcmp(cmd, "ls")){
-		if(arg_buff[1])
-			sys_ls(arg_buff[1], arg_buff[2]);
+		if(arg_buff[0])
+			sys_ls(arg_buff[0], arg_buff[1]);
+		else
+			sys_ls("", arg_buff[1]);
 		return 12;
 	}else if(!strcmp(cmd, "touch")){
-		if(arg_buff[1])
-			sys_touch(arg_buff[1]);
+		if(arg_buff[0])
+			sys_touch(arg_buff[0]);
 		return 12;
 	}else if(!strcmp(cmd, "cat")){
-		if(arg_buff[1])
-			sys_cat(arg_buff[1]);
+		if(arg_buff[0])
+			sys_cat(arg_buff[0]);
 		return 12;
 	}else if(!strcmp(cmd, "ln")){
-		if(arg_buff[1] && arg_buff[2])
-			sys_ln(arg_buff[1], arg_buff[2]);
+		if(arg_buff[0] && arg_buff[1])
+			sys_ln(arg_buff[0], arg_buff[1]);
 		return 12;
 	}else if(!strcmp(cmd, "rm")){
-		if(arg_buff[1])
-			sys_rm(arg_buff[1]);
+		if(arg_buff[0])
+			sys_rm(arg_buff[0]);
 		return 12;
 	}else{
 		printf("  Unknown command, try \"help\"\n");
