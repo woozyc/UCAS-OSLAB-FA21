@@ -5,3 +5,6 @@
 /UCAS_OS/Project5-DeviceDriver/kernel/user_programs.c filter=lfs diff=lfs merge=lfs -text
 /UCAS_OS/Project5-DeviceDriver/payload.c filter=lfs diff=lfs merge=lfs -text
 /UCAS_OS/Project5-DeviceDriver/kernel.txt filter=lfs diff=lfs merge=lfs -text
+/UCAS_OS/Project6-FileSystem/kernel.txt filter=lfs diff=lfs merge=lfs -text
+/UCAS_OS/Project6-FileSystem/kernel/user_programs.c filter=lfs diff=lfs merge=lfs -text
+/UCAS_OS/Project6-FileSystem/payload.c filter=lfs diff=lfs merge=lfs -text
