@@ -229,7 +229,7 @@ int find_parent(char ** dir, int *pa_ino){
 	}
 	if(pa_ino)
 		*pa_ino = current_dir;
-	kmemcpy(name_temp, *dir, len+1);
+	kmemcpy(name_temp, (uint8_t *)*dir, len+1);
 	int name_i;
 	for(name_i = len - 1; name_i >= 1; name_i--){
 		if(name_temp[name_i] == '/'){
@@ -317,7 +317,7 @@ void do_mkfs(){
     kmemset(sector_temp_2, 0, 512);
     dentry_t *dentry = (dentry_t *)sector_temp_2;
     dentry->ino = 0;
-    kmemcpy(dentry->name, ".", 2);
+    kmemcpy((uint8_t *)dentry->name, (uint8_t *)".", 2);
     sbi_sd_write(kva2pa((uintptr_t)dentry), 1, superblock->start + superblock->datablock_offset);
     //set block map
     kmemset(sector_temp_2, 0, 512);
@@ -374,8 +374,9 @@ void do_cd(char *dir){
 	if(!get_ino(current_dir, dir, &dir_ino)){
 		prints("> [FS] No such directory\n");
 	}else{
-    	if(!judge_directory(dir_ino))
+    	if(!judge_directory(dir_ino)){
     		return ;
+    	}
 		current_dir = dir_ino;
 	}
 }
@@ -396,7 +397,7 @@ void do_mkdir(char *dir){
 		return ;
 	}
 	uint8_t name_temp[64];
-	kmemcpy(name_temp, dir, len+1);
+	kmemcpy(name_temp, (uint8_t *)dir, len+1);
 	if(get_ino(dir_ino, (char *)name_temp, NULL)){
 		prints("> [FS] Such file or directory already exits\n");
 		return ;
@@ -436,16 +437,16 @@ void do_mkdir(char *dir){
 	get_datasector(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	dentry_t *pa_dentry = ((dentry_t *)sector_temp_3) + new_index % (512/sizeof(dentry_t));
 	pa_dentry->ino = new_ino;
-	kmemcpy(pa_dentry->name, dir, len+1);
+	kmemcpy((uint8_t *)(pa_dentry->name), (uint8_t *)dir, len+1);
 	write_datasector_SD(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	//setup new dentry for new directory
 	get_datasector(sector_temp_3, new_datanum, 0);
 	dentry_t *new_dentry = (dentry_t *)sector_temp_3;
 	new_dentry->ino = new_ino;
-	kmemcpy(new_dentry->name, ".", 2);
+	kmemcpy((uint8_t *)(new_dentry->name), (uint8_t *)".", 2);
 	new_dentry++;
 	new_dentry->ino = dir_ino;
-	kmemcpy(new_dentry->name, "..", 3);
+	kmemcpy((uint8_t *)(new_dentry->name), (uint8_t *)"..", 3);
 	write_datasector_SD(sector_temp_3, new_datanum, 0);
 }
 
@@ -466,7 +467,7 @@ void do_rmdir(char *dir){
 	}
 	unsigned int chd_ino;
 	uint8_t name_temp[64];
-	kmemcpy(name_temp, dir, len+1);
+	kmemcpy(name_temp, (uint8_t *)dir, len+1);
 	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino)){
 		prints("> [FS] Such file or directory does not exist!\n");
 		return ;
@@ -573,12 +574,12 @@ void do_touch(char *file){
 		return 0;
 	//check directory name
 	int len = kstrlen(file);
-	if(!len || kstrcontain(dir, '/') || kstrcontain(dir, ' ') || dir[0] == '-'){
+	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-'){
 		prints("> [FS] Illegal file name\n");
 		return ;
 	}
 	uint8_t name_temp[64];
-	kmemcpy(name_temp, file, len+1);
+	kmemcpy(name_temp, (uint8_t *)file, len+1);
 	if(get_ino(dir_ino, (char *)name_temp, NULL)){
 		prints("> [FS] Such file or directory already exits\n");
 		return ;
@@ -618,11 +619,11 @@ void do_touch(char *file){
 	get_datasector(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	dentry_t *pa_dentry = ((dentry_t *)sector_temp_3) + new_index % (512/sizeof(dentry_t));
 	pa_dentry->ino = new_ino;
-	kmemcpy(pa_dentry->name, file, len+1);
+	kmemcpy((uint8_t *)(pa_dentry->name), (uint8_t *)file, len+1);
 	write_datasector_SD(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	//setup new dentry for new file
 	get_datasector(sector_temp_3, new_datanum, 0);
-	kmemcpy(sector_temp_3, "", 1);
+	kmemcpy((uint8_t *)(sector_temp_3), (uint8_t *)"", 1);
 	write_datasector_SD(sector_temp_3, new_datanum, 0);
 }
 
@@ -676,17 +677,17 @@ void do_rm(char *file){
 	}
 	//find parent directory
 	int pa_ino;
-	if(!find_parent(&dir, &pa_ino))
+	if(!find_parent(&file, &pa_ino))
 		return 0;
 	//check file name
-	int len = kstrlen(dir);
-	if(!len || kstrcontain(dir, '/') || kstrcontain(dir, ' ') || dir[0] == '-'){
+	int len = kstrlen(file);
+	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-'){
 		prints("> [FS] Illegal file name\n");
 		return ;
 	}
 	unsigned int chd_ino;
 	uint8_t name_temp[64];
-	kmemcpy(name_temp, dir, len+1);
+	kmemcpy(name_temp, (uint8_t *)file, len+1);
 	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino)){
 		prints("> [FS] Such file or directory does not exist!\n");
 		return ;
@@ -714,17 +715,17 @@ void do_rm(char *file){
 	uint8_t sector_temp_4[512];
 	uint32_t *block_num;
 	inode_t * chd_inode = ino2inode(sector_temp_2, chd_ino);
-	for(rm_sz = 0; rm_sz < inode->size; rm_sz += BLOCK_SZ){
+	for(rm_sz = 0; rm_sz < chd_inode->size; rm_sz += BLOCK_SZ){
 		if(rm_sz/BLOCK_SZ < 10){
-			free_block(inode->direct[rm_sz/BLOCK_SZ]);
+			free_block(chd_inode->direct[rm_sz/BLOCK_SZ]);
 		}else{
-			get_datasector(sector_temp_4, inode->indirect_1, ((rm_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
+			get_datasector(sector_temp_4, chd_inode->indirect_1, ((rm_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
 			block_num = (uint32_t *)(sector_temp_4 + (((((rm_sz - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			free_block(*block_num);
 		}
 	}
 	if(rm_sz/BLOCK_SZ >= 10)
-		free_block(inode->indirect_1);
+		free_block(chd_inode->indirect_1);
 	//free child inode
 	free_inode(chd_ino);
 }
@@ -747,7 +748,7 @@ int do_fopen(char *name, int access){
 	}
 	int i, fd = -1;
 	for(i = 0; i < MAX_FILE_NUM; i++){
-		if(openfile[i].used = 0){
+		if(openfile[i].used == 0){
 			fd = i;
 			break;
 		}
@@ -800,7 +801,7 @@ int do_fread(int fd, char *buff, int size){
 			block_num = (uint32_t *)(sector_temp_4 + (((((r_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (r_offset - BLOCK_SZ*10) % BLOCK_SZ);
 		}
-		kmemcpy(buff + buff_index, sector_temp_3, (remain >= 512) ? 511 : remain);
+		kmemcpy((uint8_t *)(buff + buff_index), (uint8_t *)sector_temp_3, (remain >= 512) ? 511 : remain);
 		buff_index += 511;
 	}
 	openfile[fd].r_cursor += flag ? size + pad : inode->size - openfile[fd].r_cursor;
@@ -841,16 +842,16 @@ int do_fwrite(int fd, char *buff, int size){
 				inode->direct[i] = alloc_block();
 				for(j = 0; j < BLOCK_SZ; j+= 512){
 					get_datasector(sector_temp_3, inode->direct[i], j);
-					kmemcpy(sector_temp_3, "\0", 1);
+					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
 					write_datasector_SD(sector_temp_3, inode->direct[i], j);
 				}
 			}else{
 				get_datasector(sector_temp_4, inode->indirect_1, (i - 10) * sizeof(uint32_t));
-				block_num = (uint32_t *)(sector_temp_4 + (i - 10) * sizeof(uint32_t)) % 512));
+				block_num = (uint32_t *)(sector_temp_4 + ((i - 10) * sizeof(uint32_t) % 512));
 				*block_num = alloc_block();
 				for(j = 0; j < BLOCK_SZ; j+= 512){
 					get_datasector(sector_temp_3, *block_num, j);
-					kmemcpy(sector_temp_3, "\0", 1);
+					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
 					write_datasector_SD(sector_temp_3, inode->direct[i], j);
 				}
 				write_datasector_SD(sector_temp_4, inode->indirect_1, (i - 10) * sizeof(uint32_t));
@@ -860,7 +861,7 @@ int do_fwrite(int fd, char *buff, int size){
 	//write
 	int write_sz, buff_index = 0, remain, w_offset;
 	for(write_sz = 0; write_sz < size + pad; write_sz += 512){
-		remain = size + pad - read_sz;
+		remain = size + pad - write_sz;
 		w_offset = openfile[fd].w_cursor + write_sz;
 		if(w_offset/BLOCK_SZ < 10){
 			get_datasector(sector_temp_3, inode->direct[w_offset/BLOCK_SZ], w_offset % BLOCK_SZ);
@@ -869,9 +870,9 @@ int do_fwrite(int fd, char *buff, int size){
 			block_num = (uint32_t *)(sector_temp_4 + (((((w_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*10) % BLOCK_SZ);
 		}
-		kmemcpy(sector_temp_3, buff + buff_index, (remain >= 512) ? 511 : remain);
+		kmemcpy(sector_temp_3, (uint8_t *)(buff + buff_index), (remain >= 512) ? 511 : remain);
 		if(remain >= 512)
-			kmemcpy(sector_temp_3 + 511, "\0", 1);
+			kmemcpy(sector_temp_3 + 511, (uint8_t *)"\0", 1);
 		if(w_offset/BLOCK_SZ < 10){
 			write_datasector_SD(sector_temp_3, inode->direct[w_offset/BLOCK_SZ], w_offset % BLOCK_SZ);
 		}else{
@@ -914,7 +915,7 @@ int do_lseek(int fd, int offset, int whence){
 			break;
 		case SEEK_CUR:
 			openfile[fd].r_cursor += offset + pad;
-			openfile[fd].w_cursot += offset + pad;
+			openfile[fd].w_cursor += offset + pad;
 			break;
 		case SEEK_END:
 			openfile[fd].r_cursor += inode->size + offset + pad;
