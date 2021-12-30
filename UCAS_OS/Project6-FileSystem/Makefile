@@ -92,7 +92,7 @@ generateMapping: $(SRC_GENMAP)
 
 image: bootblock kernelimage createimage
 	./createimage --extended bootblock kernelimage
-	dd if=/dev/zero of=image oflag=append conv=notrunc bs=512 count=4M
+	dd if=/dev/zero of=image oflag=append conv=notrunc bs=512 count=3M
 
 clean:
 	rm -rf bootblock image kernelimage createimage main payload.c libtiny_libc.a

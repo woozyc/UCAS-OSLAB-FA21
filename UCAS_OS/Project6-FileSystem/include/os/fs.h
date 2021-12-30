@@ -17,6 +17,14 @@
 #define INODE_DIR 0
 #define INODE_FILE 1
 
+#define O_RDONLY 1 /* read only open */
+#define O_WRONLY 2 /* write only open */
+#define O_RDWR 3 /* read/write open */
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 typedef struct _superblock{
     uint32_t magic;
     uint32_t size;
@@ -53,8 +61,9 @@ typedef struct _dentry{
 }dentry_t;
 
 typedef struct _file_des{
-    uint16_t mode;
-    uint16_t inode;
+    uint8_t used;
+    uint8_t mode;
+    uint16_t ino;
     uint32_t r_cursor;
     uint32_t w_cursor;
 }fd_t;

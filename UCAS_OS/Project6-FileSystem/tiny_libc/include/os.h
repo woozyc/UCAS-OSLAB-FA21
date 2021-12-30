@@ -50,4 +50,8 @@ typedef char EthernetFrame[XEMACPS_MAX_FRAME_SIZE]
 #define O_WRONLY 2 /* write only open */
 #define O_RDWR 3 /* read/write open */
 
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 #endif // OS_H
