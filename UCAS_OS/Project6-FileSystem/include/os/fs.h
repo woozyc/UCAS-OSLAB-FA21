@@ -47,8 +47,8 @@ typedef struct _inode{
     uint8_t type;
     uint8_t mode;
     uint16_t ino;
-    uint32_t direct[10];
-    uint32_t indirect_1;
+    uint32_t direct[10];//max 40KB
+    uint32_t indirect_1[3];//max 12MB
     uint32_t indirect_2;
     uint32_t links;
     uint32_t size;

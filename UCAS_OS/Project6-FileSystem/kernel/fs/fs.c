@@ -676,7 +676,7 @@ void do_cat(char *file){
 		if(printed_sz/BLOCK_SZ < 10){
 			get_datasector(sector_temp_3, inode->direct[printed_sz/BLOCK_SZ], printed_sz % BLOCK_SZ);
 		}else{
-			get_datasector(sector_temp_4, inode->indirect_1, ((printed_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
+			get_datasector(sector_temp_4, inode->indirect_1[0], ((printed_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
 			block_num = (uint32_t *)(sector_temp_4 + (((((printed_sz - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (printed_sz - BLOCK_SZ*10) % BLOCK_SZ);
 		}
@@ -816,7 +816,7 @@ void do_rm(char *file){
 		if(rm_sz/BLOCK_SZ < 10){
 			free_block(chd_inode->direct[rm_sz/BLOCK_SZ]);
 		}else{
-			get_datasector(sector_temp_4, chd_inode->indirect_1, ((rm_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
+			get_datasector(sector_temp_4, chd_inode->indirect_1[0], ((rm_sz - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
 			block_num = (uint32_t *)(sector_temp_4 + (((((rm_sz - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			free_block(*block_num);
 		}
@@ -884,7 +884,7 @@ int do_fread(int fd, char *buff, int size){
 	//overflow
 	if(openfile[fd].r_cursor + size + pad > inode->size)
 		flag = 0;
-	int read_sz, buff_index = 0, remain, r_offset;
+	int read_sz, buff_index = 0, remain, r_offset, sector_remain;
 	uint32_t *block_num;
 	uint8_t sector_temp_3[512];
 	uint8_t sector_temp_4[512];
@@ -892,15 +892,28 @@ int do_fread(int fd, char *buff, int size){
 		//prints("%d ", size);
 		remain = size + pad - read_sz;
 		r_offset = openfile[fd].r_cursor + read_sz;
+		sector_remain = 512 - r_offset % 512;
 		if(r_offset/BLOCK_SZ < 10){
 			get_datasector(sector_temp_3, inode->direct[r_offset/BLOCK_SZ], r_offset % BLOCK_SZ);
-		}else{
-			get_datasector(sector_temp_4, inode->indirect_1, ((r_offset - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
+		}else if(r_offset/BLOCK_SZ < 1034){
+			get_datasector(sector_temp_4, inode->indirect_1[0], ((r_offset - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
 			block_num = (uint32_t *)(sector_temp_4 + (((((r_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (r_offset - BLOCK_SZ*10) % BLOCK_SZ);
+		}else if(r_offset/BLOCK_SZ < 2058){
+			get_datasector(sector_temp_4, inode->indirect_1[1], ((r_offset - BLOCK_SZ*1034) / BLOCK_SZ) * sizeof(uint32_t));
+			block_num = (uint32_t *)(sector_temp_4 + (((((r_offset - BLOCK_SZ*1034) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
+			get_datasector(sector_temp_3, *block_num, (r_offset - BLOCK_SZ*1034) % BLOCK_SZ);
+		}else{
+			get_datasector(sector_temp_4, inode->indirect_1[2], ((r_offset - BLOCK_SZ*2058) / BLOCK_SZ) * sizeof(uint32_t));
+			block_num = (uint32_t *)(sector_temp_4 + (((((r_offset - BLOCK_SZ*2058) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
+			get_datasector(sector_temp_3, *block_num, (r_offset - BLOCK_SZ*2058) % BLOCK_SZ);
 		}
-		kmemcpy((uint8_t *)(buff + buff_index), (uint8_t *)sector_temp_3 + r_offset % 512, (remain >= 512) ? 511 : remain);
-		buff_index += 511;
+		kmemcpy((uint8_t *)(buff + buff_index), (uint8_t *)sector_temp_3 + r_offset % 512, (remain >= sector_remain) ? (sector_remain-1) : remain);
+		if(remain >= sector_remain){
+			buff_index += sector_remain-1;
+		}else{
+			buff_index += remain;
+		}
 	}
 	openfile[fd].r_cursor += flag ? size + pad : inode->size - openfile[fd].r_cursor;
 	return flag;
@@ -933,7 +946,11 @@ int do_fwrite(int fd, char *buff, int size){
 		old_blocks = old_size / BLOCK_SZ + 1;
 		new_blocks = new_size / BLOCK_SZ + 1;
 		if(old_blocks <= 10 && new_blocks > 10)
-			inode->indirect_1 = alloc_block();
+			inode->indirect_1[0] = alloc_block();
+		if(old_blocks <= 1034 && new_blocks > 1034)
+			inode->indirect_1[1] = alloc_block();
+		if(old_blocks <= 2058 && new_blocks > 2058)
+			inode->indirect_1[2] = alloc_block();
 		
 		for(i = old_blocks; i < new_blocks; i++){
 			if(i < 10){
@@ -943,43 +960,74 @@ int do_fwrite(int fd, char *buff, int size){
 					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
 					write_datasector_SD(sector_temp_3, inode->direct[i], j);
 				}
-			}else{
-				get_datasector(sector_temp_4, inode->indirect_1, (i - 10) * sizeof(uint32_t));
-				block_num = (uint32_t *)(sector_temp_4 + ((i - 10) * sizeof(uint32_t) % 512));
+			}else if(i < 1034){
+				get_datasector(sector_temp_4, inode->indirect_1[0], (i - 10) * sizeof(uint32_t));
+				block_num = (uint32_t *)(sector_temp_4 + (((i - 10) * sizeof(uint32_t)) % 512));
 				*block_num = alloc_block();
 				for(j = 0; j < BLOCK_SZ; j+= 512){
 					get_datasector(sector_temp_3, *block_num, j);
 					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
-					write_datasector_SD(sector_temp_3, inode->direct[i], j);
+					write_datasector_SD(sector_temp_3, *block_num, j);
 				}
-				write_datasector_SD(sector_temp_4, inode->indirect_1, (i - 10) * sizeof(uint32_t));
+				write_datasector_SD(sector_temp_4, inode->indirect_1[0], (i - 10) * sizeof(uint32_t));
+			}else if(i < 2058){
+				get_datasector(sector_temp_4, inode->indirect_1[1], (i - 1034) * sizeof(uint32_t));
+				block_num = (uint32_t *)(sector_temp_4 + (((i - 1034) * sizeof(uint32_t)) % 512));
+				*block_num = alloc_block();
+				for(j = 0; j < BLOCK_SZ; j+= 512){
+					get_datasector(sector_temp_3, *block_num, j);
+					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
+					write_datasector_SD(sector_temp_3, *block_num, j);
+				}
+				write_datasector_SD(sector_temp_4, inode->indirect_1[1], (i - 1034) * sizeof(uint32_t));
+			}else{
+				get_datasector(sector_temp_4, inode->indirect_1[2], (i - 2058) * sizeof(uint32_t));
+				block_num = (uint32_t *)(sector_temp_4 + (((i - 2058) * sizeof(uint32_t)) % 512));
+				*block_num = alloc_block();
+				for(j = 0; j < BLOCK_SZ; j+= 512){
+					get_datasector(sector_temp_3, *block_num, j);
+					kmemcpy(sector_temp_3, (uint8_t *)"\0", 1);
+					write_datasector_SD(sector_temp_3, *block_num, j);
+				}
+				write_datasector_SD(sector_temp_4, inode->indirect_1[2], (i - 2058) * sizeof(uint32_t));
 			}
 		}
 	}
 	write_inode_SD(sector_temp_2, inode->ino);
 	//write
-	int write_sz, buff_index = 0, remain, w_offset;
+	int write_sz, buff_index = 0, remain, w_offset, sector_remain;
 	for(write_sz = 0; write_sz < size + pad; write_sz += 512){
 		remain = size + pad - write_sz;
 		w_offset = openfile[fd].w_cursor + write_sz;
+		sector_remain = 512 - w_offset % 512;
 		if(w_offset/BLOCK_SZ < 10){
 			get_datasector(sector_temp_3, inode->direct[w_offset/BLOCK_SZ], w_offset % BLOCK_SZ);
-		}else{
-			get_datasector(sector_temp_4, inode->indirect_1, ((w_offset - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
+		}else if(w_offset/BLOCK_SZ < 1034){
+			get_datasector(sector_temp_4, inode->indirect_1[0], ((w_offset - BLOCK_SZ*10) / BLOCK_SZ) * sizeof(uint32_t));
 			block_num = (uint32_t *)(sector_temp_4 + (((((w_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*10) % BLOCK_SZ);
+		}else if(w_offset/BLOCK_SZ < 2058){
+			get_datasector(sector_temp_4, inode->indirect_1[1], ((w_offset - BLOCK_SZ*1034) / BLOCK_SZ) * sizeof(uint32_t));
+			block_num = (uint32_t *)(sector_temp_4 + (((((w_offset - BLOCK_SZ*1034) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
+			get_datasector(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*1034) % BLOCK_SZ);
+		}else{
+			get_datasector(sector_temp_4, inode->indirect_1[2], ((w_offset - BLOCK_SZ*2058) / BLOCK_SZ) * sizeof(uint32_t));
+			block_num = (uint32_t *)(sector_temp_4 + (((((w_offset - BLOCK_SZ*2058) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
+			get_datasector(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*2058) % BLOCK_SZ);
 		}
-		kmemcpy(sector_temp_3 + w_offset % 512, (uint8_t *)(buff + buff_index), (remain >= 512) ? 511 : remain);
-		if(remain >= 512)
-			kmemcpy(sector_temp_3 + 511, (uint8_t *)"\0", 1);
-		else
+		kmemcpy(sector_temp_3 + w_offset % 512, (uint8_t *)(buff + buff_index), (remain >= sector_remain) ? (sector_remain-1) : remain);
+		if(remain >= sector_remain){
+			buff_index += sector_remain-1;
+			kmemcpy(sector_temp_3 + sector_remain-1, (uint8_t *)"\0", 1);
+		}else{
+			buff_index += remain;
 			kmemcpy(sector_temp_3 + w_offset % 512 + remain + 1, (uint8_t *)"\0", 1);
+		}
 		if(w_offset/BLOCK_SZ < 10){
 			write_datasector_SD(sector_temp_3, inode->direct[w_offset/BLOCK_SZ], w_offset % BLOCK_SZ);
 		}else{
 			write_datasector_SD(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*10) % BLOCK_SZ);
 		}
-		buff_index += 511;
 	}
 	openfile[fd].w_cursor += size + pad;
 	return size;
