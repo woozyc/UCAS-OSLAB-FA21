@@ -432,6 +432,7 @@ void do_mkdir(char *dir){
 	unsigned int new_datanum = alloc_block();
 	new_inode->direct[0] = new_datanum;
 	new_inode->size = 2;
+	new_inode->links = 1;
 	new_inode->time = get_timer();
 	write_inode_SD(sector_temp_3, new_inode->ino);
 	//modify parent dentry
@@ -579,7 +580,7 @@ void do_ls(char *mode, char *dir){
 		child_inode = ino2inode(sector_temp_4, dentry->ino);
 		if(extend_mode && child_inode->type == INODE_FILE){
 			prints("  %s, %d\n", dentry->name, child_inode->type);
-			prints("    inode--%d, links--0, size--%dB\n", child_inode->ino, child_inode->size);
+			prints("    inode--%d, links--%d, size--%dB\n", child_inode->ino, child_inode->links, child_inode->size);
 		}else{
 			prints("  %s, %d\n", dentry->name, child_inode->type);
 		}
@@ -635,6 +636,7 @@ void do_touch(char *file){
 	unsigned int new_datanum = alloc_block();
 	new_inode->direct[0] = new_datanum;
 	new_inode->size = 0;
+	new_inode->links = 1;
 	new_inode->time = get_timer();
 	write_inode_SD(sector_temp_3, new_inode->ino);
 	//modify parent dentry
@@ -689,8 +691,59 @@ void do_ln(char *dst, char *src){
 		prints("> [FS] Error: file system does not exist!\n");
 		return ;
 	}
-	prints("ln to be done\n");
-	;
+	//find parent directory
+	int pa_ino_dst, pa_ino_src;
+	if(!find_parent(&dst, &pa_ino_dst) || !find_parent(&src, &pa_ino_src))
+		return 0;
+	//check file name
+	int len_dst = kstrlen(dst);
+	int len_src = kstrlen(src);
+	if(!len_dst || kstrcontain(dst, '/') || kstrcontain(dst, ' ') || dst[0] == '-' || dst[0] == '.' ||
+	   !len_src || kstrcontain(src, '/') || kstrcontain(src, ' ') || src[0] == '-' || src[0] == '.'){
+		prints("> [FS] Illegal file name\n");
+		return ;
+	}
+	unsigned int src_ino;
+	uint8_t name_temp[64];
+	kmemcpy(name_temp, (uint8_t *)src, len_src+1);
+	if(!get_ino(pa_ino_src, (char *)name_temp, &src_ino, NULL)){
+		prints("> [FS] Such file or directory does not exist!\n");
+		return ;
+	}
+	//src file inode link +1
+	uint8_t sector_temp_2[512];
+	inode_t * inode_src = ino2inode(sector_temp_2, src_ino);
+	if(inode_src->type != INODE_FILE){
+		prints("> [FS] Cannot link a directory\n");
+		return ;
+	}
+	inode_src->links++;
+	write_inode_SD(sector_temp_2, inode_src->ino);
+	//make new file
+	//get dst parent inode
+	inode_t * pa_inode_dst = ino2inode(sector_temp_2, pa_ino_dst);
+	//check permission
+	if(pa_inode_dst->mode == PMS_RDONLY){
+		prints("> [FS] Parent directory is read-only, permission denied\n");
+		return ;
+	}
+	//modify parent inode
+	int new_index = pa_inode_dst->size;
+	pa_inode_dst->size++;
+	pa_inode_dst->time = get_timer();
+	if(pa_inode_dst->size % (BLOCK_SZ/sizeof(dentry_t)) == 1){
+		//alloc a new data block for parent dentry
+		pa_inode_dst->direct[pa_inode_dst->size / (BLOCK_SZ/sizeof(dentry_t))] = alloc_block();
+	}
+	write_inode_SD(sector_temp_2, pa_inode_dst->ino);
+	//modify parent dentry
+	uint8_t sector_temp_3[512];
+	unsigned int data_number = pa_inode_dst->direct[new_index / (BLOCK_SZ/sizeof(dentry_t))];
+	get_datasector(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+	dentry_t *pa_dentry = ((dentry_t *)sector_temp_3) + new_index % (512/sizeof(dentry_t));
+	pa_dentry->ino = src_ino;
+	kmemcpy((uint8_t *)(pa_dentry->name), (uint8_t *)dst, len_dst+1);
+	write_datasector_SD(sector_temp_3, data_number, (new_index % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 }
 
 void do_rm(char *file){
@@ -750,10 +803,15 @@ void do_rm(char *file){
 					    ((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	write_datasector_SD(sector_temp_4, pa_inode->direct[dentry_i / (BLOCK_SZ/sizeof(dentry_t))],
 					    ((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
-	//free child datablock
 	int rm_sz;
 	uint32_t *block_num;
 	inode_t * chd_inode = ino2inode(sector_temp_2, chd_ino);
+	if(chd_inode->links > 1){
+		chd_inode->links--;
+		write_inode_SD(sector_temp_2, chd_inode->ino);
+		return ;
+	}
+	//free child datablock
 	for(rm_sz = 0; rm_sz < chd_inode->size + 1; rm_sz += BLOCK_SZ){
 		if(rm_sz/BLOCK_SZ < 10){
 			free_block(chd_inode->direct[rm_sz/BLOCK_SZ]);
