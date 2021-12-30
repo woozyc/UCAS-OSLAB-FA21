@@ -154,7 +154,8 @@ static int resolve_command(int len){
 		shell_help();
 		return 3;
 	}else if(!strcmp(cmd, "exec")){
-		shell_exec(arg_buff[0], argc, arg_buff);
+		if(arg_buff[0])
+			shell_exec(arg_buff[0], argc, arg_buff);
 		return 4;
 	}else if(!strcmp(cmd, "kill")){
 		for(int i = 0; i < argc; i++){

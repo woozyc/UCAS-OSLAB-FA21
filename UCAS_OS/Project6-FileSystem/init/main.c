@@ -134,6 +134,9 @@ static void init_shell(){
 	 share_pgtable(pcb[0].pgdir, pa2kva(PGDIR_PA));
 	 ((PTE *)(pcb[0].pgdir))[1] = (PTE )0;
 	 //set stack va
+	 for(int i = 0; i < 16; i++){
+	 	allocPage(1);
+	 }
      pcb[0].kernel_sp = allocPage(1) + PAGE_SIZE;//kva, mapped
      pcb[0].user_sp = USER_STACK_ADDR;//user va
      //map user stack to a pa

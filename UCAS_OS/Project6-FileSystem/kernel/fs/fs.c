@@ -79,7 +79,7 @@ void write_datasector_SD(uint8_t * sector_temp_3, unsigned int block_num, unsign
 
 //find the target directory or file inode number
 //return: 0 for failure, 1 for success
-int get_ino(unsigned int start_ino, char *name, unsigned int *ino){
+int get_ino(unsigned int start_ino, char *name, unsigned int *ino, int *dentry_i){
     int len = kstrlen(name);
     //no name
     int i, nextname = 0;
@@ -131,7 +131,9 @@ int get_ino(unsigned int start_ino, char *name, unsigned int *ino){
 			//find first-level name in dentry
 			if(ino)
 				*ino = dentry->ino;
-			return get_ino(dentry->ino, name + nextname, ino);
+			if(dentry_i)
+				*dentry_i = i;
+			return get_ino(dentry->ino, name + nextname, ino, NULL);
 		}
 	}
 	//search complete, no such file or dir
@@ -234,7 +236,7 @@ int find_parent(char ** dir, int *pa_ino){
 	for(name_i = len - 1; name_i >= 1; name_i--){
 		if(name_temp[name_i] == '/'){
 			name_temp[name_i] = 0;
-			if(name_temp[name_i-1] == '/' || !get_ino(current_dir, (char *)name_temp, &dir_ino)){
+			if(name_temp[name_i-1] == '/' || !get_ino(current_dir, (char *)name_temp, &dir_ino, NULL)){
 				prints("> [FS] No such directory\n");
 				return 0;
 			}
@@ -371,7 +373,7 @@ void do_cd(char *dir){
 	}
 	//find dir inode number
 	unsigned int dir_ino;
-	if(!get_ino(current_dir, dir, &dir_ino)){
+	if(!get_ino(current_dir, dir, &dir_ino, NULL)){
 		prints("> [FS] No such directory\n");
 	}else{
     	if(!judge_directory(dir_ino)){
@@ -398,7 +400,7 @@ void do_mkdir(char *dir){
 	}
 	uint8_t name_temp[64];
 	kmemcpy(name_temp, (uint8_t *)dir, len+1);
-	if(get_ino(dir_ino, (char *)name_temp, NULL)){
+	if(get_ino(dir_ino, (char *)name_temp, NULL, NULL)){
 		prints("> [FS] Such file or directory already exits\n");
 		return ;
 	}
@@ -461,14 +463,15 @@ void do_rmdir(char *dir){
 		return 0;
 	//check directory name
 	int len = kstrlen(dir);
-	if(!len || kstrcontain(dir, '/') || kstrcontain(dir, ' ') || dir[0] == '-'){
+	if(!len || kstrcontain(dir, '/') || kstrcontain(dir, ' ') || dir[0] == '-' || dir[0] == '.'){
 		prints("> [FS] Illegal directory name\n");
 		return ;
 	}
 	unsigned int chd_ino;
+	int dentry_i;
 	uint8_t name_temp[64];
 	kmemcpy(name_temp, (uint8_t *)dir, len+1);
-	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino)){
+	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino, &dentry_i)){
 		prints("> [FS] Such file or directory does not exist!\n");
 		return ;
 	}
@@ -490,6 +493,22 @@ void do_rmdir(char *dir){
 		free_block(pa_inode->direct[old_index / (BLOCK_SZ/sizeof(dentry_t))]);
 	}
 	write_inode_SD(sector_temp_2, pa_inode->ino);
+	uint8_t sector_temp_3[512];
+	uint8_t sector_temp_4[512];
+	//modify parent dentry
+	if(old_index != 2){
+		//find the last dentry, copy to delete place
+		get_datasector(sector_temp_3, pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))],
+					   ((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+		get_datasector(sector_temp_4, pa_inode->direct[dentry_i / (BLOCK_SZ/sizeof(dentry_t))],
+					   ((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+		kmemcpy(sector_temp_4 + (((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t)),
+				sector_temp_3 + (((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t)), sizeof(dentry_t));
+	}
+	write_datasector_SD(sector_temp_3, pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))],
+					    ((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+	write_datasector_SD(sector_temp_4, pa_inode->direct[dentry_i / (BLOCK_SZ/sizeof(dentry_t))],
+					    ((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	//free child dentry
 	int i;
 	inode_t * chd_inode = ino2inode(sector_temp_2, chd_ino);
@@ -521,12 +540,16 @@ void do_ls(char *mode, char *dir){
 			prints("> [FS] Unknow argument %s\n", mode);
 			return ;
 		}
-		if(!get_ino(current_dir, dir, &dir_ino)){
-			prints("> [FS] No such directory\n");
-			return ;
+		if(dir){
+			if(!get_ino(current_dir, dir, &dir_ino, NULL)){
+				prints("> [FS] No such directory\n");
+				return ;
+			}
+		}else{
+			dir_ino = current_dir;
 		}
 	}else{
-		if(!get_ino(current_dir, mode, &dir_ino)){
+		if(!get_ino(current_dir, mode, &dir_ino, NULL)){
 			prints("> [FS] No such directory\n");
 			return ;
 		}
@@ -574,13 +597,13 @@ void do_touch(char *file){
 		return 0;
 	//check directory name
 	int len = kstrlen(file);
-	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-'){
+	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-' || file[0] == '.'){
 		prints("> [FS] Illegal file name\n");
 		return ;
 	}
 	uint8_t name_temp[64];
 	kmemcpy(name_temp, (uint8_t *)file, len+1);
-	if(get_ino(dir_ino, (char *)name_temp, NULL)){
+	if(get_ino(dir_ino, (char *)name_temp, NULL, NULL)){
 		prints("> [FS] Such file or directory already exits\n");
 		return ;
 	}
@@ -633,7 +656,7 @@ void do_cat(char *file){
 		return ;
 	}
 	unsigned int file_ino;
-	if(!get_ino(current_dir, file, &file_ino)){
+	if(!get_ino(current_dir, file, &file_ino, NULL)){
 		prints("> [FS] No such file\n");
 		return ;
 	}
@@ -681,14 +704,15 @@ void do_rm(char *file){
 		return 0;
 	//check file name
 	int len = kstrlen(file);
-	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-'){
+	if(!len || kstrcontain(file, '/') || kstrcontain(file, ' ') || file[0] == '-' || file[0] == '.'){
 		prints("> [FS] Illegal file name\n");
 		return ;
 	}
 	unsigned int chd_ino;
+	int dentry_i;
 	uint8_t name_temp[64];
 	kmemcpy(name_temp, (uint8_t *)file, len+1);
-	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino)){
+	if(!get_ino(pa_ino, (char *)name_temp, &chd_ino, &dentry_i)){
 		prints("> [FS] Such file or directory does not exist!\n");
 		return ;
 	}
@@ -710,12 +734,27 @@ void do_rm(char *file){
 		free_block(pa_inode->direct[old_index / (BLOCK_SZ/sizeof(dentry_t))]);
 	}
 	write_inode_SD(sector_temp_2, pa_inode->ino);
+	uint8_t sector_temp_3[512];
+	uint8_t sector_temp_4[512];
+	//modify parent dentry
+	if(old_index != 2){
+		//find the last dentry, copy to delete place
+		get_datasector(sector_temp_3, pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))],
+					   ((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+		get_datasector(sector_temp_4, pa_inode->direct[dentry_i / (BLOCK_SZ/sizeof(dentry_t))],
+					   ((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+		kmemcpy(sector_temp_4 + (((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t)),
+				sector_temp_3 + (((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t)), sizeof(dentry_t));
+	}
+	write_datasector_SD(sector_temp_3, pa_inode->direct[pa_inode->size / (BLOCK_SZ/sizeof(dentry_t))],
+					    ((pa_inode->size) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
+	write_datasector_SD(sector_temp_4, pa_inode->direct[dentry_i / (BLOCK_SZ/sizeof(dentry_t))],
+					    ((dentry_i) % (BLOCK_SZ/sizeof(dentry_t))) * sizeof(dentry_t));
 	//free child datablock
 	int rm_sz;
-	uint8_t sector_temp_4[512];
 	uint32_t *block_num;
 	inode_t * chd_inode = ino2inode(sector_temp_2, chd_ino);
-	for(rm_sz = 0; rm_sz < chd_inode->size; rm_sz += BLOCK_SZ){
+	for(rm_sz = 0; rm_sz < chd_inode->size + 1; rm_sz += BLOCK_SZ){
 		if(rm_sz/BLOCK_SZ < 10){
 			free_block(chd_inode->direct[rm_sz/BLOCK_SZ]);
 		}else{
@@ -736,7 +775,7 @@ int do_fopen(char *name, int access){
 		return ;
 	}
 	unsigned int file_ino;
-	if(!get_ino(current_dir, name, &file_ino)){
+	if(!get_ino(current_dir, name, &file_ino, NULL)){
 		prints("> [FS] No such file\n");
 		return ;
 	}
@@ -791,7 +830,8 @@ int do_fread(int fd, char *buff, int size){
 	uint32_t *block_num;
 	uint8_t sector_temp_3[512];
 	uint8_t sector_temp_4[512];
-	for(read_sz = 0; read_sz < flag ? size + pad : inode->size - openfile[fd].r_cursor; read_sz += 512){
+	for(read_sz = 0; read_sz < (flag ? (size + pad) : (inode->size - openfile[fd].r_cursor)); read_sz += 512){
+		//prints("%d ", size);
 		remain = size + pad - read_sz;
 		r_offset = openfile[fd].r_cursor + read_sz;
 		if(r_offset/BLOCK_SZ < 10){
@@ -801,7 +841,7 @@ int do_fread(int fd, char *buff, int size){
 			block_num = (uint32_t *)(sector_temp_4 + (((((r_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (r_offset - BLOCK_SZ*10) % BLOCK_SZ);
 		}
-		kmemcpy((uint8_t *)(buff + buff_index), (uint8_t *)sector_temp_3, (remain >= 512) ? 511 : remain);
+		kmemcpy((uint8_t *)(buff + buff_index), (uint8_t *)sector_temp_3 + r_offset % 512, (remain >= 512) ? 511 : remain);
 		buff_index += 511;
 	}
 	openfile[fd].r_cursor += flag ? size + pad : inode->size - openfile[fd].r_cursor;
@@ -858,6 +898,7 @@ int do_fwrite(int fd, char *buff, int size){
 			}
 		}
 	}
+	write_inode_SD(sector_temp_2, inode->ino);
 	//write
 	int write_sz, buff_index = 0, remain, w_offset;
 	for(write_sz = 0; write_sz < size + pad; write_sz += 512){
@@ -870,9 +911,11 @@ int do_fwrite(int fd, char *buff, int size){
 			block_num = (uint32_t *)(sector_temp_4 + (((((w_offset - BLOCK_SZ*10) / BLOCK_SZ)) * sizeof(uint32_t)) % 512));
 			get_datasector(sector_temp_3, *block_num, (w_offset - BLOCK_SZ*10) % BLOCK_SZ);
 		}
-		kmemcpy(sector_temp_3, (uint8_t *)(buff + buff_index), (remain >= 512) ? 511 : remain);
+		kmemcpy(sector_temp_3 + w_offset % 512, (uint8_t *)(buff + buff_index), (remain >= 512) ? 511 : remain);
 		if(remain >= 512)
 			kmemcpy(sector_temp_3 + 511, (uint8_t *)"\0", 1);
+		else
+			kmemcpy(sector_temp_3 + w_offset % 512 + remain + 1, (uint8_t *)"\0", 1);
 		if(w_offset/BLOCK_SZ < 10){
 			write_datasector_SD(sector_temp_3, inode->direct[w_offset/BLOCK_SZ], w_offset % BLOCK_SZ);
 		}else{
@@ -880,6 +923,7 @@ int do_fwrite(int fd, char *buff, int size){
 		}
 		buff_index += 511;
 	}
+	openfile[fd].w_cursor += size + pad;
 	return size;
 }
 

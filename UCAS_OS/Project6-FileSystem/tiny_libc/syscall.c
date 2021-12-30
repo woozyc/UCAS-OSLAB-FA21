@@ -196,15 +196,15 @@ void sys_rm(char *file)
 }
 int sys_fopen(char *name, int access)
 {
-    invoke_syscall(SYSCALL_FOPEN, (long)name, (long)access, IGNORE, IGNORE);
+    return invoke_syscall(SYSCALL_FOPEN, (long)name, (long)access, IGNORE, IGNORE);
 }
 int sys_fread(int fd, char *buff, int size)
 {
-    invoke_syscall(SYSCALL_FREAD, (long)fd, (long)buff, (long)size, IGNORE);
+    return invoke_syscall(SYSCALL_FREAD, (long)fd, (long)buff, (long)size, IGNORE);
 }
 int sys_fwrite(int fd, char *buff, int size)
 {
-    invoke_syscall(SYSCALL_FWRITE, (long)fd, (long)buff, (long)size, IGNORE);
+    return invoke_syscall(SYSCALL_FWRITE, (long)fd, (long)buff, (long)size, IGNORE);
 }
 void sys_fclose(int fd)
 {
@@ -212,7 +212,7 @@ void sys_fclose(int fd)
 }
 int sys_lseek(int fd, int offset, int whence)
 {
-    invoke_syscall(SYSCALL_LSEEK, (long)fd, (long)offset, (long)whence, IGNORE);
+    return invoke_syscall(SYSCALL_LSEEK, (long)fd, (long)offset, (long)whence, IGNORE);
 }
 /* do not use in project2
 int sys_fork()
